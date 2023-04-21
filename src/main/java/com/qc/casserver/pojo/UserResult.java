@@ -38,5 +38,10 @@ public class UserResult implements Serializable {
     //后期可能拓展
     private String email;
 
+    private String service;
+
+    private String tgc;
+
+    private String st;
 
 }

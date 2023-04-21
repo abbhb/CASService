@@ -9,8 +9,7 @@ import com.qc.casserver.pojo.entity.Permission;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.service.IRedisService;
 import com.qc.casserver.utils.ThreadLocalUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -18,6 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
 

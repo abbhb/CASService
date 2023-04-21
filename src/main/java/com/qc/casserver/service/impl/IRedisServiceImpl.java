@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+import static com.qc.casserver.common.MyString.ST_PRE;
+
 @Service
 public class IRedisServiceImpl implements IRedisService {
 
@@ -24,8 +26,13 @@ public class IRedisServiceImpl implements IRedisService {
 //    }
 
     @Override
-    public void setTokenWithTime(String token, String value, Long time) {
-        redisTemplate.opsForValue().set(token, value, time, TimeUnit.SECONDS);
+    public void setTokenWithTime(String tgc, String tgt, Long time) {
+        redisTemplate.opsForValue().set(tgc, tgt, time, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void setWithTime(String key, String value, Long time) {
+        redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
     }
 
     @Override
@@ -50,7 +57,23 @@ public class IRedisServiceImpl implements IRedisService {
     }
 
     @Override
+    public void setTTL(String key,Long time) {
+        redisTemplate.expire(key,time , TimeUnit.SECONDS);
+    }
+
+    @Override
     public String getValue(String key) {
         return (String)redisTemplate.opsForValue().get(key);
     }
+
+    @Override
+    public String getSTValue(String key) {
+        return (String)redisTemplate.opsForValue().get(ST_PRE+key);
+    }
+
+    @Override
+    public void setST(String st, String value) {
+        redisTemplate.opsForValue().set(ST_PRE+st, value, 15L, TimeUnit.SECONDS);
+    }
+
 }

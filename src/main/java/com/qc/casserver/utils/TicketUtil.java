@@ -15,20 +15,32 @@ import java.time.LocalDateTime;
 
 
 /**
- * 定义Ticket相关
+ * 定义Ticket
  */
+
 public class TicketUtil {
     private static final String secret="reggit20230113.FfG!D3a2AcfrF.2u0C1";
     public static String charset = "utf-8";
     /**
-     * 用于生成TGT（浏览器侧）
+     * 服务端使用没必要加密
+     * 减小数据库压力，把权限也放入
+     * @param username
+     * @return
+     */
+    public static String addNewTGT(String username,Long userId,Integer permission){
+        String message="TGC:"+username+"==="+ userId+"==="+permission;
+        return message;
+    }
+
+
+    /**
+     * 用于生成TGC（浏览器侧）
      * 过期时间均由redis来自动过期
      * @param username
      * @return
      */
-    public static String addNewTGT(String username){
-
-        String message="tk:"+username+","+ LocalDateTime.now();
+    public static String addNewTGC(String userId,String username){
+        String message="tk:"+userId+","+username+","+ LocalDateTime.now();
         Mac sha256_HMAC = null;
         try {
             sha256_HMAC = Mac.getInstance("HmacSHA256");
@@ -48,36 +60,23 @@ public class TicketUtil {
 
     }
 
-
     /**
-     * 服务端使用没必要加密
-     * 减小数据库压力，把权限也放入
-     * @param username
-     * @param userId
+     * 通过TGT获取用户id
+     * @param TGT
      * @return
      */
-    public static String addNewTGC(String username,Long userId,Integer permission){
-        String message="TGC:"+username+"==="+ userId+"==="+permission;
+    public static String getUserIdByTGT(String TGT){
+        String message= TGT.split("===")[1];
         return message;
     }
 
     /**
-     * 通过TGC获取用户id
-     * @param TGC
+     * 用过TGT返回权限代码
+     * @param TGT
      * @return
      */
-    public static String getUserIdByTGC(String TGC){
-        String message= TGC.split("===")[1];
-        return message;
-    }
-
-    /**
-     * 用过TGC返回权限代码
-     * @param TGC
-     * @return
-     */
-    public static Integer getUserPermissionByTGC(String TGC){
-        Integer permission = Integer.valueOf(TGC.split("===")[2]);
+    public static Integer getUserPermissionByTGT(String TGT){
+        Integer permission = Integer.valueOf(TGT.split("===")[2]);
         return permission;
     }
 
@@ -89,10 +88,15 @@ public class TicketUtil {
      * @param permission
      * @return
      */
-    public static String addNewST(String username,Long userId,Integer permission){
+    public static String addNewST(String username,Long userId,Integer permission) {
         String message="ST:"+username+"==="+ userId+"==="+permission;
-        keyGeneratorES(message, "AES", secret, 128, true);
-        return message;
+        String s = null;
+        try {
+            s = RsaUtils.publicKeyEncrypt(message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return s;
     }
 
     /**
@@ -101,7 +105,12 @@ public class TicketUtil {
      * @return
      */
     public static String getUserId(String st){
-        String s = AESdecode(st);
+        String s = null;
+        try {
+            s = RsaUtils.privateKeyDecrypt(st);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return s.split("===")[1];
     }
 

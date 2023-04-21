@@ -5,7 +5,7 @@ public class MyString {
 
     public final static String pre_user_redis = "user:";
 
-    public final static String public_file = "D:\\printFile";
+    public final static String ST_PRE = "st:";
 
-    public final static String permission_key = "permission";
+    public final static String permission_key = "cas:permission";
 }

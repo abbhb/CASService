@@ -7,6 +7,8 @@ import com.qc.casserver.pojo.entity.Permission;
 import com.qc.casserver.service.IRedisService;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.mybatis.spring.annotation.MapperScan;
+import org.mybatis.spring.annotation.MapperScans;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -19,10 +21,10 @@ import java.util.List;
 public class CasServerApplication implements CommandLineRunner {
 
 
-    @Setter
+    @Autowired
     private PermissionMapper permissionMapper;
 
-    @Setter
+    @Autowired
     private IRedisService iRedisService;
     public static void main(String[] args) {
         SpringApplication.run(CasServerApplication.class, args);
