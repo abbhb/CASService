@@ -59,3 +59,6 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 ! 内部环境里API请求地址为:
 
 http://192.168.12.122:55555/ [可能后续变更为10段，无所谓了，后端也不存在跨域问题]
+
+
+``[前端项目:https://github.com/abbhb/CASService-Front]```

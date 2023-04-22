@@ -60,4 +60,6 @@ public class User implements Serializable {
     //绑定邮箱
     private String email;
 
+    private String avatar;
+
 }

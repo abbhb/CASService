@@ -75,7 +75,11 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
         String userId = TicketUtil.getUserIdByTGT(tgt);
         Integer userPermission = TicketUtil.getUserPermissionByTGT(tgt);
-
+        User byId = userService.getById(Long.valueOf(userId));
+        if (byId.getStatus()==0){
+            //用户被封号;
+            return false;
+        }
         //到了这里已经是登录的了,现在在这里做个优化,如果此时快过期了，可以无感知更新下票的有效期(注意同步更新前端的票)
         if (iRedisService.getTokenTTL(tgc)<1500L){
             iRedisService.setTTL(tgc,3*3600L);
@@ -84,10 +88,8 @@ public class LoginInterceptor implements HandlerInterceptor {
             cookie.setPath("/");
             response.addCookie(cookie);
         }
-        User user = new User();
-        user.setId(Long.valueOf(userId));
-        user.setPermission(userPermission);
-        ThreadLocalUtil.addCurrentUser(user);
+
+        ThreadLocalUtil.addCurrentUser(byId);
 
         //暂时直接过
         return true;

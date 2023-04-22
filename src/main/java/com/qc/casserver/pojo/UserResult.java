@@ -26,6 +26,9 @@ public class UserResult implements Serializable {
 
     private Integer status;
 
+    private String avatar;
+
+
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
