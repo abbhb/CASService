@@ -54,7 +54,7 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 | ------------------------------------------- | ---------- | ------------------------------------------------------------ | --------------- |
 | ```/api2/oauth/accesstoken/```              | ```POST``` | ```accessToken```:拿token换当前用户数据**[注意大写请求参数名]** | 下方```JSON2``` |
 | ```/api2/oauth```/                          | ```POST``` | ```st```:就是回调后地址里的ticket                            | 下方```JSON1``` |
-| ```/api2/oauth/accesstoken/refreshtoken/``` | ```POST``` | ```refreshToken```:刷新令牌**[注意大写请求参数名]**          | 下方```JSON3``` |
+| ```/api2/oauth/refreshtoken/``` | ```POST``` | ```refreshToken```:刷新令牌**[注意大写请求参数名]**          | 下方```JSON3``` |
 
 ```JSON1```：
 
