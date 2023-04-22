@@ -34,6 +34,10 @@ public class IRedisServiceImpl implements IRedisService {
     public void setWithTime(String key, String value, Long time) {
         redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
     }
+    @Override
+    public void setWithTime(String key, Object value, Long time) {
+        redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
+    }
 
     @Override
     public void del(String token) {
@@ -65,6 +69,11 @@ public class IRedisServiceImpl implements IRedisService {
     public String getValue(String key) {
         return (String)redisTemplate.opsForValue().get(key);
     }
+    @Override
+    public Object getValueObject(String key) {
+        return redisTemplate.opsForValue().get(key);
+    }
+
 
     @Override
     public String getSTValue(String key) {

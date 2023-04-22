@@ -111,6 +111,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userResult.setCreateTime(one.getCreateTime());
         userResult.setUpdateTime(one.getUpdateTime());
         userResult.setPermission(one.getPermission());
+        userResult.setAvatar(one.getAvatar());
+        userResult.setStatus(one.getStatus());
         userResult.setPermissionName(permission.getName());
         userResult.setPhone(one.getPhone());
         userResult.setSex(one.getSex());

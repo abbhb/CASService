@@ -7,6 +7,8 @@ public interface IRedisService {
 
     void setWithTime(String key,String value,Long time);
 
+    void setWithTime(String key,Object value,Long time);
+
 
 
     void del(String token);
@@ -15,6 +17,7 @@ public interface IRedisService {
 
     void setTTL(String key,Long time);
     String getValue(String key);
+    Object getValueObject(String key);
 
     String getSTValue(String key);
     void setST(String st,String value);
