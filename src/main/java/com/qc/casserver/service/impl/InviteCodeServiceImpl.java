@@ -58,6 +58,9 @@ public class InviteCodeServiceImpl extends ServiceImpl<InviteCodeMapper, InviteC
 
     @Override
     public R<PageData<InviteCodeResult>> listMyInviteCode(Integer pageNum, Integer pageSize, Long userId) {
+        if (pageSize==null||pageSize==null||userId==null){
+            throw new CustomException("参数异常");
+        }
         Page<InviteCode> pageInfo = new Page(pageNum,pageSize);
         LambdaQueryWrapper<InviteCode> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.orderByDesc(InviteCode::getCreateTime);
