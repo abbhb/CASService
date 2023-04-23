@@ -28,4 +28,12 @@ public class CommonController {
         return commonService.uploadFileTOMinio(file);
 
     }
+
+    @PostMapping("/getcode")
+    public R<String> getCode(String email){
+        //此接口需加密，并且对用户限流
+        return commonService.sendEmailCode(email);
+    }
+
+
 }

@@ -5,6 +5,7 @@ import com.qc.casserver.common.R;
 import com.qc.casserver.pojo.UserResult;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.User;
+import com.qc.casserver.pojo.vo.RegisterUser;
 
 
 public interface UserService extends IService<User> {
@@ -19,7 +20,9 @@ public interface UserService extends IService<User> {
 
 //    R<UserResult> loginByEmail(String email, String password);
 //
-    R<String> createUser(User user, Long userId);
+    R<String> createUser(RegisterUser user, Long userId);
+
+    R<String> registerUser(RegisterUser user);
 //
     R<UserResult> logout(String tgc);
 //

@@ -7,6 +7,7 @@ import com.qc.casserver.pojo.UserResult;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.Ticket;
 import com.qc.casserver.pojo.entity.User;
+import com.qc.casserver.pojo.vo.RegisterUser;
 import com.qc.casserver.service.IRedisService;
 import com.qc.casserver.service.UserService;
 
@@ -269,17 +270,22 @@ public class UserController {
     }
 
     @NeedLogin
+    @PermissionCheck("1")
     @PostMapping("/add")
-    public R<String> add(@RequestBody User user,HttpServletRequest request){
+    public R<String> add(@RequestBody RegisterUser user,HttpServletRequest request){
         System.out.println("user = " + user);
         Long userId = TGTUtil.getUserIdByTGTInRequest(request, iRedisService);
-//        String username = (String) user.get("username");
-//        String password = (String) user.get("password");
         return userService.createUser(user,userId);
-
 
     }
 
+
+    @PostMapping("/register")
+    public R<String> registerUser(@RequestBody RegisterUser user){
+        System.out.println("user = " + user);
+        return userService.registerUser(user);
+
+    }
     @NeedLogin
     @PostMapping("/logout")
     public R<UserResult> logout(HttpServletRequest request,HttpServletResponse response){
@@ -290,6 +296,7 @@ public class UserController {
         response.addCookie(cookie);
         return userService.logout(tgcInRequest);
     }
+
 
 
 

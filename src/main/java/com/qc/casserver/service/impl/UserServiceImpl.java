@@ -17,13 +17,16 @@ import com.qc.casserver.pojo.UserResult;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.Permission;
 import com.qc.casserver.pojo.entity.User;
+import com.qc.casserver.pojo.vo.RegisterUser;
 import com.qc.casserver.service.IRedisService;
 import com.qc.casserver.service.UserService;
 import com.qc.casserver.utils.PWDMD5;
 
+import com.qc.casserver.utils.RandomName;
 import com.qc.casserver.utils.TicketUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import static com.qc.casserver.utils.ParamsCalibration.checkSensitiveWords;
 
@@ -284,12 +288,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Transactional
     @Override
-    public R<String> createUser(User user,Long userId) {
+    public R<String> createUser(RegisterUser user, Long userId) {
         if (user.getPermission()==null){
-            throw new CustomException("yichang");
+            user.setPermission(2);
         }
         if (StringUtils.isEmpty(user.getName())){
-            throw new CustomException("yichang");
+            user.setName(RandomName.getUUID());
+        }
+        if (StringUtils.isEmpty(user.getSex())){
+            user.setSex("未知");
         }
 
         if (StringUtils.isEmpty(user.getUsername())){
@@ -319,7 +326,67 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String md5Encryption = PWDMD5.getMD5Encryption(password,salt);
         user.setPassword(md5Encryption);
         user.setSalt(salt);
-        boolean save = super.save(user);
+        User user1 = new User();
+        BeanUtils.copyProperties(user,user1);
+        log.info("{}",user1);
+        boolean save = super.save(user1);
+        if (save){
+            return R.success("创建成功");
+        }
+        throw new CustomException("yichang");
+    }
+    @Transactional
+    @Override
+    public R<String> registerUser(RegisterUser user) {
+        user.setPermission(2);
+        if (StringUtils.isEmpty(user.getName())){
+            user.setName(RandomName.getUUID());
+        }
+        if (StringUtils.isEmpty(user.getSex())){
+            user.setSex("未知");
+        }
+
+        if (StringUtils.isEmpty(user.getUsername())){
+            throw new CustomException("yichang");
+        }
+        if (StringUtils.isEmpty(user.getPassword())){
+            throw new CustomException("password");
+        }
+        if (StringUtils.isEmpty(user.getEmail())){
+            throw new CustomException("邮箱缺少");
+        }
+        if (StringUtils.isEmpty(user.getInviteCode())){
+            throw new CustomException("验证码缺少");
+        }
+        if (StringUtils.isEmpty(user.getMailCode())){
+            throw new CustomException("验证码缺少");
+        }
+        if (StringUtils.isEmpty(user.getVerificationCode())){
+            throw new CustomException("验证码缺少");
+        }
+        if (user.getUsername().contains("@")){
+            throw new CustomException("不可包含'@'");
+        }
+        if (!user.getPassword().matches("^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$")){
+            return R.error("密码必须字母加数字,8-16位");
+        }
+        String mailCode = iRedisService.getValue(user.getEmail());
+        if (StringUtils.isEmpty(mailCode)||!mailCode.equals(user.getMailCode())){
+            throw new CustomException("验证码错误");
+        }
+
+
+
+        checkSensitiveWords(user.getName());
+        String password = user.getPassword();
+        String salt = PWDMD5.getSalt();
+        String md5Encryption = PWDMD5.getMD5Encryption(password,salt);
+        user.setPassword(md5Encryption);
+        user.setSalt(salt);
+        User user1 = new User();
+        BeanUtils.copyProperties(user,user1);
+        log.info("{}",user1);
+        boolean save = super.save(user1);
         if (save){
             return R.success("创建成功");
         }
