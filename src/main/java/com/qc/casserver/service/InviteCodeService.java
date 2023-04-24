@@ -3,8 +3,9 @@ package com.qc.casserver.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qc.casserver.common.R;
 import com.qc.casserver.pojo.InviteCodeResult;
-import com.qc.casserver.pojo.entity.InviteCode;
+import com.qc.casserver.pojo.entity.invitecode.InviteCode;
 import com.qc.casserver.pojo.entity.PageData;
+import com.qc.casserver.pojo.entity.invitecode.ListInviteCode;
 
 import java.util.List;
 
@@ -21,12 +22,15 @@ public interface InviteCodeService extends IService<InviteCode> {
 
     public R<PageData<InviteCodeResult>> listMyInviteCode(Integer pageNum, Integer pageSize, Long userId);
 
-    public PageData<InviteCode> listAllInviteCode();
+    public R<PageData<InviteCodeResult>> listAllInviteCode(Integer pageNum, Integer pageSize, Long userId);
 
     public boolean deleteListInviteCode(String id,Long userId);
     public boolean deleteOneInviteCode(Long id,Long userId);
 
 
+    R<InviteCodeResult> addInviteCode(Long userId, InviteCode inviteCode);
 
+    R<List<InviteCodeResult>> addInviteCodeList(Long userId, ListInviteCode listInviteCode);
 
+    boolean useInviteCode(String inviteCode);
 }

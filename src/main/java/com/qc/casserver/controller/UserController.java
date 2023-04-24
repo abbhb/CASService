@@ -279,12 +279,32 @@ public class UserController {
 
     }
 
+    @NeedLogin
+    @PostMapping("/emailwithuser")
+    public R<String> emailWithUser(@RequestBody Map<String, Object> email,HttpServletRequest request){
+        Long userId = TGTUtil.getUserIdByTGTInRequest(request, iRedisService);
+        System.out.println("email = " + email);
+        String emails = (String) email.get("email");
+        String code = (String) email.get("code");
+        return userService.emailWithUser(emails,code,userId);
+    }
 
     @PostMapping("/register")
     public R<String> registerUser(@RequestBody RegisterUser user){
         System.out.println("user = " + user);
         return userService.registerUser(user);
+    }
 
+    @NeedLogin
+    @PutMapping("/changepassword")
+    public R<UserResult> changePassword(@RequestBody Map<String, Object> user){
+        System.out.println("user = " + user);
+        String id = (String) user.get("id");
+        String username = (String) user.get("username");
+        String password = (String) user.get("password");
+        String newpassword = (String) user.get("newpassword");
+        String checknewpassword = (String) user.get("checknewpassword");
+        return userService.changePassword(id,username,password,newpassword,checknewpassword);
     }
     @NeedLogin
     @PostMapping("/logout")

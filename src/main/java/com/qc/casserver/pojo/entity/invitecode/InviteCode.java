@@ -1,11 +1,13 @@
-package com.qc.casserver.pojo.entity;
+package com.qc.casserver.pojo.entity.invitecode;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.qc.casserver.utils.RandomName;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Random;
 
 @Data
 public class InviteCode implements Serializable {
@@ -13,19 +15,27 @@ public class InviteCode implements Serializable {
 
     private String inviteCode;
 
+    /**
+     * 是否持久化
+     */
     private Integer persistence;
 
+    @TableLogic
+    @TableField(fill = FieldFill.INSERT)//只在插入时填充
     private Integer isDeleted;
 
     private Integer usageCount;
 
     private Long createUser;
 
+    @TableField(fill = FieldFill.INSERT)//只在插入时填充
     private LocalDateTime createTime;
 
     public static InviteCode randomOneInviteCode(Long userId,Integer persistence){
         InviteCode inviteCode1 = new InviteCode();
-        inviteCode1.setInviteCode(RandomName.getUUID());
+        String uuid = RandomName.getUUID();
+        int year = LocalDateTime.now().getYear();
+        inviteCode1.setInviteCode(year+uuid.substring(1,8));
         inviteCode1.setCreateUser(userId);
         inviteCode1.setCreateTime(LocalDateTime.now());
         inviteCode1.setUsageCount(0);

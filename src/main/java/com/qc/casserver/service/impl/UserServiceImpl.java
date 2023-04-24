@@ -12,13 +12,16 @@ import com.qc.casserver.common.CustomException;
 import com.qc.casserver.common.MyString;
 
 import com.qc.casserver.common.R;
+import com.qc.casserver.config.LoginConfig;
 import com.qc.casserver.mapper.UserMapper;
 import com.qc.casserver.pojo.UserResult;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.Permission;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.pojo.vo.RegisterUser;
+import com.qc.casserver.service.CaptchaService;
 import com.qc.casserver.service.IRedisService;
+import com.qc.casserver.service.InviteCodeService;
 import com.qc.casserver.service.UserService;
 import com.qc.casserver.utils.PWDMD5;
 
@@ -34,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 import static com.qc.casserver.utils.ParamsCalibration.checkSensitiveWords;
 
@@ -43,11 +45,17 @@ import static com.qc.casserver.utils.ParamsCalibration.checkSensitiveWords;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
+    private final LoginConfig loginConfig;
     private final IRedisService iRedisService;
 
+    private final InviteCodeService inviteCodeService;
+    private final CaptchaService captchaService;
     @Autowired
-    public UserServiceImpl(IRedisService iRedisService) {
+    public UserServiceImpl(LoginConfig loginConfig, IRedisService iRedisService, InviteCodeService inviteCodeService, CaptchaService captchaService) {
+        this.loginConfig = loginConfig;
         this.iRedisService = iRedisService;
+        this.inviteCodeService = inviteCodeService;
+        this.captchaService = captchaService;
     }
 
 
@@ -338,6 +346,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     @Override
     public R<String> registerUser(RegisterUser user) {
+
         user.setPermission(2);
         if (StringUtils.isEmpty(user.getName())){
             user.setName(RandomName.getUUID());
@@ -352,17 +361,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StringUtils.isEmpty(user.getPassword())){
             throw new CustomException("password");
         }
-        if (StringUtils.isEmpty(user.getEmail())){
-            throw new CustomException("邮箱缺少");
-        }
+
         if (StringUtils.isEmpty(user.getInviteCode())){
-            throw new CustomException("验证码缺少");
-        }
-        if (StringUtils.isEmpty(user.getMailCode())){
-            throw new CustomException("验证码缺少");
-        }
-        if (StringUtils.isEmpty(user.getVerificationCode())){
-            throw new CustomException("验证码缺少");
+            throw new CustomException("邀请码缺少");
         }
         if (user.getUsername().contains("@")){
             throw new CustomException("不可包含'@'");
@@ -370,19 +371,50 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!user.getPassword().matches("^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$")){
             return R.error("密码必须字母加数字,8-16位");
         }
-        String mailCode = iRedisService.getValue(user.getEmail());
-        if (StringUtils.isEmpty(mailCode)||!mailCode.equals(user.getMailCode())){
-            throw new CustomException("验证码错误");
+
+        //校验邀请码
+        boolean isTrue = inviteCodeService.useInviteCode(user.getInviteCode());
+        if (!isTrue){
+            throw new CustomException("邀请码错误");
+        }
+        if (loginConfig.isNeedCaptcha()){
+            if (StringUtils.isEmpty(user.getRandomCode())||StringUtils.isEmpty(user.getVerificationCode())){
+                throw new CustomException("验证码缺少参数");
+            }
+            //需要验证码
+            String msg = captchaService.checkImageCode(user.getRandomCode(), user.getVerificationCode());
+            if (StringUtils.isNotBlank(msg)) {
+                throw new CustomException("请重试!");            }
         }
 
-
-
         checkSensitiveWords(user.getName());
+        if (StringUtils.isEmpty(user.getEmail())){
+            throw new CustomException("邮箱缺少");
+        }
+        if (StringUtils.isEmpty(user.getMailCode())){
+            throw new CustomException("邮箱验证码缺少");
+        }
+
         String password = user.getPassword();
         String salt = PWDMD5.getSalt();
         String md5Encryption = PWDMD5.getMD5Encryption(password,salt);
         user.setPassword(md5Encryption);
         user.setSalt(salt);
+        if (StringUtils.isEmpty(user.getEmail())){
+            throw new CustomException("邮箱缺少");
+        }
+        if (StringUtils.isEmpty(user.getMailCode())){
+            throw new CustomException("邮箱验证码缺少");
+        }
+        String mailCode = iRedisService.getValue(MyString.pre_email_redis+user.getEmail());
+        if (StringUtils.isEmpty(mailCode)||!mailCode.equals(user.getMailCode())){
+            throw new CustomException("验证码错误");
+        }
+
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.set(User::getEmail,null);
+        lambdaUpdateWrapper.eq(User::getEmail,user.getEmail());
+        super.update(lambdaUpdateWrapper);//对之前绑定过这个邮箱的号解绑
         User user1 = new User();
         BeanUtils.copyProperties(user,user1);
         log.info("{}",user1);
@@ -390,7 +422,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (save){
             return R.success("创建成功");
         }
-        throw new CustomException("yichang");
+        throw new CustomException("异常");
     }
 
     @Override
@@ -576,55 +608,56 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return R.error("err");
     }
 
-//    @Override
-//    public R<UserResult> changePassword(String id, String username, String password, String newpassword, String checknewpassword) {
-//        if (id==null){
-//            return R.error(Code.DEL_TOKEN,"环境异常,强制下线");
-//        }
-//        if (username==null){
-//            return R.error(Code.DEL_TOKEN,"环境异常,强制下线");
-//        }
-//        if (password==null){
-//            return  R.error("请输入原密码");
-//        }
-//        if (newpassword==null){
-//            return R.error("请输入新密码");
-//        }
-//        if (checknewpassword==null){
-//            return R.error("请输入确认密码");
-//        }
-//        if (!newpassword.equals(checknewpassword)){
-//            return R.error("两次密码不一致!");
-//        }
-//        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(User::getId,Long.valueOf(id)).eq(User::getUsername,username);
-//        User one = super.getOne(queryWrapper);
-//        if (one==null){
-//            return R.error(Code.DEL_TOKEN,"环境异常,强制下线");
-//        }
-//        String salt = one.getSalt();
-//        if (!PWDMD5.getMD5Encryption(password,salt).equals(one.getPassword())){//前端传入的明文密码加上后端的盐，处理后跟库中密码比对，一样登陆成功
-//            return R.error("原密码错误");
-//        }
-//
-//        String newSalt = PWDMD5.getSalt();
-//        String newMD5Password = PWDMD5.getMD5Encryption(newpassword,newSalt);
-//        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-//        lambdaUpdateWrapper.eq(User::getId,Long.valueOf(id)).eq(User::getUsername,username);
-//        User user = new User();
-//        user.setId(Long.valueOf(id));
-//        user.setUsername(username);
-//        user.setPassword(newMD5Password);
-//        user.setSalt(newSalt);
-////        employee.setUpdateUser(Long.valueOf(id));
-//        //操作数据库更新密码和盐
-//        boolean update = super.update(user, lambdaUpdateWrapper);
-//        if (update){
-//            return R.success("修改成功");
-//        }
-//
-//        return R.error("修改失败");
-//    }
+    @Transactional
+    @Override
+    public R<UserResult> changePassword(String id, String username, String password, String newpassword, String checknewpassword) {
+        if (id==null){
+            return R.error(Code.DEL_TOKEN,"环境异常,强制下线");
+        }
+        if (username==null){
+            return R.error(Code.DEL_TOKEN,"环境异常,强制下线");
+        }
+        if (password==null){
+            return  R.error("请输入原密码");
+        }
+        if (newpassword==null){
+            return R.error("请输入新密码");
+        }
+        if (checknewpassword==null){
+            return R.error("请输入确认密码");
+        }
+        if (!newpassword.equals(checknewpassword)){
+            return R.error("两次密码不一致!");
+        }
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getId,Long.valueOf(id)).eq(User::getUsername,username);
+        User one = super.getOne(queryWrapper);
+        if (one==null){
+            return R.error(Code.DEL_TOKEN,"环境异常,强制下线");
+        }
+        String salt = one.getSalt();
+        if (!PWDMD5.getMD5Encryption(password,salt).equals(one.getPassword())){//前端传入的明文密码加上后端的盐，处理后跟库中密码比对，一样登陆成功
+            return R.error("原密码错误");
+        }
+
+        String newSalt = PWDMD5.getSalt();
+        String newMD5Password = PWDMD5.getMD5Encryption(newpassword,newSalt);
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.eq(User::getId,Long.valueOf(id)).eq(User::getUsername,username);
+        User user = new User();
+        user.setId(Long.valueOf(id));
+        user.setUsername(username);
+        user.setPassword(newMD5Password);
+        user.setSalt(newSalt);
+//        employee.setUpdateUser(Long.valueOf(id));
+        //操作数据库更新密码和盐
+        boolean update = super.update(user, lambdaUpdateWrapper);
+        if (update){
+            return R.success("修改成功");
+        }
+
+        return R.error("修改失败");
+    }
 //
 //    @Override
 //    public R<String> updataUser(String userid, String name, String username, String phone, String idNumber, String status, String grouping, String sex, String token) {
@@ -723,36 +756,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     }
 //
-//    @Transactional
-//    @Override
-//    public R<String> emailWithUser(String emails, String code, String token) {
-//        if (StringUtils.isEmpty(emails)||StringUtils.isEmpty(code)||StringUtils.isEmpty(token)){
-//            throw new CustomException("参数异常");
-//        }
-//
-//        try {
-//            DecodedJWT decodedJWT = JWTUtil.deToken(token);
-//            Claim id = decodedJWT.getClaim("id");
-//            if (!iRedisService.getValue("emailcode:"+id.asString()).equals(code)){
-//                throw new CustomException("验证码错误");
-//            }
-//            LambdaQueryWrapper<User> userLambdaQueryWrapperCount = new LambdaQueryWrapper<>();
-//            userLambdaQueryWrapperCount.eq(User::getEmail,emails);
-//            int count = super.count(userLambdaQueryWrapperCount);
-//            if (count>0){
-//                throw new CustomException("该账号已经绑定过帐号了!");
-//            }
-//            LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-//            lambdaUpdateWrapper.set(User::getEmail,emails);
-//            lambdaUpdateWrapper.eq(User::getId,Long.valueOf(id.asString()));
-//            boolean update = super.update(lambdaUpdateWrapper);
-//            if (update){
-//                return R.success("绑定成功");
-//            }
-//            return R.error("异常");
-//        }catch (Exception e){
-//            return R.error(Code.DEL_TOKEN,e.getMessage());
-//        }
-//    }
+    @Transactional
+    @Override
+    public R<String> emailWithUser(String emails, String code,Long userId) {
+        if (StringUtils.isEmpty(emails)||StringUtils.isEmpty(code)||userId==null){
+            throw new CustomException("参数异常");
+        }
+        if (!iRedisService.getValue(MyString.pre_email_redis+emails).equals(code)){
+            throw new CustomException("验证码错误");
+        }
+        //对之前绑定过这个邮箱的号解绑
+        LambdaUpdateWrapper<User> lambdaUpdateWrappers = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrappers.set(User::getEmail,null);
+        lambdaUpdateWrappers.eq(User::getEmail,emails);
+        super.update(lambdaUpdateWrappers);
+
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.set(User::getEmail,emails);
+        lambdaUpdateWrapper.eq(User::getId,userId);
+        boolean update = super.update(lambdaUpdateWrapper);
+        if (update){
+            return R.success("绑定成功");
+        }
+        return R.error("异常");
+    }
 
 }

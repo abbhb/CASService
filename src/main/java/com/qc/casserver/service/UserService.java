@@ -34,7 +34,7 @@ public interface UserService extends IService<User> {
 //
     R<UserResult> updataForUserSelf(User user);
 //
-//    R<UserResult> changePassword(String id, String username, String password, String newpassword, String checknewpassword);
+    R<UserResult> changePassword(String id, String username, String password, String newpassword, String checknewpassword);
 //
 //    R<String> updataUser(String userid, String name, String username, String phone, String idNumber, String status, String grouping, String sex, String token);
 //
@@ -43,6 +43,6 @@ public interface UserService extends IService<User> {
 //
     R<String> hasUserName(String username);
 //
-//    R<String> emailWithUser(String emails, String code, String token);
+    R<String> emailWithUser(String emails, String code, Long userId);
 
 }

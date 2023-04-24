@@ -11,15 +11,17 @@ public class RegisterUser extends User {
      */
     private String mailCode;
 
-
     /**
      * 邀请码
      */
     private String inviteCode;
 
-    
     /**
      * 验证码
      */
+    private String randomCode;//key
+
     private String verificationCode;
+
+    private String rePassword;
 }
