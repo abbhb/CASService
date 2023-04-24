@@ -11,7 +11,7 @@ spring:
     username: 3482238110@qq.com
     #授权码
     password: uftgsldqgymadbac
-    test-connection: true
+    test-connection: false
     properties:
       mail:
         smtp:
