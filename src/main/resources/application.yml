@@ -10,7 +10,7 @@ spring:
     #发送邮件的账户
     username: 3482238110@qq.com
     #授权码
-    password: uftgsldqgymadbac
+    password: YourPassword
     test-connection: false
     properties:
       mail:
