@@ -13,4 +13,20 @@ public class MyString {
     public final static String ST_PRE = "st:";
 
     public final static String permission_key = "cas:permission";
+
+    /**
+     * 限流
+     */
+    public final static String LIMITING_NameSpaces = "LIMITING::";
+
+    /**
+     * 按用户进行限流，后面接userID
+     * 用户具体某个接口限流
+     * LIMITING::USER::1::Controller
+     */
+    public final static String LIMITING_NameSpaces_USER = LIMITING_NameSpaces+"USER::";
+
+
+
+
 }

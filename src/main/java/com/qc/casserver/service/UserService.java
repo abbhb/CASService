@@ -43,6 +43,6 @@ public interface UserService extends IService<User> {
 //
     R<String> hasUserName(String username);
 //
-    R<String> emailWithUser(String emails, String code, Long userId);
+    R<String> emailWithUser(String originEmail, String originCode,String newEmail, String newCode, Long userId);
 
 }

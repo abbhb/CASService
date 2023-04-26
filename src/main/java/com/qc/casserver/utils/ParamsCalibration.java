@@ -2,6 +2,8 @@ package com.qc.casserver.utils;
 
 
 import com.qc.casserver.common.CustomException;
+import com.qc.casserver.pojo.UserResult;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 参数校验工具类
@@ -9,11 +11,21 @@ import com.qc.casserver.common.CustomException;
 public class ParamsCalibration {
 
     public static void checkSensitiveWords(String word){
-        String sensitiveWords = "admin,妈,爸,爹,爷,妈妈,爷爷,爸爸,admins,Admin,ADmin,ADMin,ADMIn,ADMIN,Root,root,ROOT,ROOt,name,<,>";
+        String sensitiveWords = "admin,妈,爸,爹,爷,妈妈,爷爷,爸爸,admins,Admin,ADmin,ADMin,ADMIn,ADMIN,Root,root,ROOT,ROOt,name,<,>,@";
         if (sensitiveWords.contains(word)){
             throw new CustomException("err: 敏感词");
 
         }
+    }
+
+    public static boolean haveMust(UserResult userResult){
+        boolean emptyEmail = StringUtils.isEmpty(userResult.getEmail());
+        boolean emptyPhone = StringUtils.isEmpty(userResult.getPhone());
+        boolean emptyStudentId = StringUtils.isEmpty(userResult.getStudentId());
+        if (emptyEmail||emptyPhone||emptyStudentId||emptyStudentId){
+            return false;
+        }
+        return true;
     }
 
     /**

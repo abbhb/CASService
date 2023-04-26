@@ -91,7 +91,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new CustomException("密码不存在");
         }
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUsername,username);
+        if (username.contains("@")){
+            //邮箱
+            queryWrapper.eq(User::getEmail,username);
+
+        }else {
+            queryWrapper.eq(User::getUsername,username);
+        }
+
         User one = super.getOne(queryWrapper);
         if (one==null){
             throw new CustomException("用户名或密码错误");
@@ -420,6 +427,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         log.info("{}",user1);
         boolean save = super.save(user1);
         if (save){
+            iRedisService.del(MyString.pre_email_redis+user.getEmail());
             return R.success("创建成功");
         }
         throw new CustomException("异常");
@@ -758,24 +766,44 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //
     @Transactional
     @Override
-    public R<String> emailWithUser(String emails, String code,Long userId) {
-        if (StringUtils.isEmpty(emails)||StringUtils.isEmpty(code)||userId==null){
+    public R<String> emailWithUser(String originEmail, String originCode,String newEmail, String newCode,Long userId) {
+        if (StringUtils.isEmpty(newEmail)||StringUtils.isEmpty(newCode)||userId==null){
             throw new CustomException("参数异常");
         }
-        if (!iRedisService.getValue(MyString.pre_email_redis+emails).equals(code)){
-            throw new CustomException("验证码错误");
+        if (originEmail.equals(newEmail)){
+            throw new CustomException("？？？什么操作");
+        }
+        //校验新邮箱验证码
+        if (!iRedisService.getValue(MyString.pre_email_redis+newEmail).equals(newCode)){
+            throw new CustomException("新邮箱验证码错误");
+        }
+        //判断当前用户是否以前绑定过邮箱
+        User byId = super.getById(userId);
+        if (byId==null){
+            throw new CustomException("用户不存在");
+        }
+        if (!StringUtils.isEmpty(byId.getEmail())){
+            if (StringUtils.isEmpty(originEmail)||StringUtils.isEmpty(originCode)){
+                throw new CustomException("参数异常");
+            }
+            //校验原邮箱验证码
+            if (!iRedisService.getValue(MyString.pre_email_redis+originEmail).equals(originCode)){
+                throw new CustomException("原邮箱验证码错误");
+            }
         }
         //对之前绑定过这个邮箱的号解绑
         LambdaUpdateWrapper<User> lambdaUpdateWrappers = new LambdaUpdateWrapper<>();
         lambdaUpdateWrappers.set(User::getEmail,null);
-        lambdaUpdateWrappers.eq(User::getEmail,emails);
+        lambdaUpdateWrappers.eq(User::getEmail,newEmail);
         super.update(lambdaUpdateWrappers);
 
         LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        lambdaUpdateWrapper.set(User::getEmail,emails);
+        lambdaUpdateWrapper.set(User::getEmail,newEmail);
         lambdaUpdateWrapper.eq(User::getId,userId);
         boolean update = super.update(lambdaUpdateWrapper);
         if (update){
+            //删除验证码
+            iRedisService.del(MyString.pre_email_redis+newEmail);
             return R.success("绑定成功");
         }
         return R.error("异常");
