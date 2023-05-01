@@ -2,6 +2,7 @@ package com.qc.casserver.service.impl;
 
 
 
+import com.qc.casserver.common.MyString;
 import com.qc.casserver.service.IRedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,7 +15,7 @@ import static com.qc.casserver.common.MyString.ST_PRE;
 @Service
 public class IRedisServiceImpl implements IRedisService {
 
-    private RedisTemplate redisTemplate;
+    private final RedisTemplate redisTemplate;
 
     @Autowired
     public IRedisServiceImpl(RedisTemplate redisTemplate){
@@ -37,6 +38,70 @@ public class IRedisServiceImpl implements IRedisService {
     @Override
     public void setWithTime(String key, Object value, Long time) {
         redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 往redis里存入accessToken
+     * @param key
+     * @param value
+     * @param time Seconds
+     */
+    @Override
+    public void addAccessToken(String key,Object value,Long time) {
+        redisTemplate.opsForValue().set(MyString.pre_access_token + key, value, time, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 往redis里存入refreshToken
+     * @param key
+     * @param value
+     * @param time Seconds
+     */
+    @Override
+    public void addRefreshToken(String key,Object value,Long time) {
+        redisTemplate.opsForValue().set(MyString.pre_refresh_token + key, value, time, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void delRefreshToken(String key) {
+        redisTemplate.delete(MyString.pre_access_token + key);
+    }
+
+    @Override
+    public void delAccessToken(String key) {
+        redisTemplate.delete(MyString.pre_refresh_token + key);
+    }
+
+    @Override
+    public Object getRefreshToken(String key) {
+        return redisTemplate.opsForValue().get(MyString.pre_refresh_token + key);
+    }
+
+    @Override
+    public Object getAccessToken(String key) {
+        return redisTemplate.opsForValue().get(MyString.pre_access_token + key);
+    }
+
+    @Override
+    public Long getAccessTokenTTL(String uuid) {
+        Long expire = redisTemplate.getExpire(MyString.pre_access_token + uuid);
+        return expire;
+    }
+
+    @Override
+    public Long getRefreshTokenTTL(String uuid) {
+        Long expire = redisTemplate.getExpire(MyString.pre_refresh_token + uuid);
+        return expire;
+    }
+
+    @Override
+    public void setAccessTokenTTL(String key, Long time) {
+        redisTemplate.expire(MyString.pre_access_token + key,time , TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void setRefreshTokenTTL(String key, Long time) {
+        redisTemplate.expire(MyString.pre_refresh_token + key,time , TimeUnit.SECONDS);
     }
 
     @Override

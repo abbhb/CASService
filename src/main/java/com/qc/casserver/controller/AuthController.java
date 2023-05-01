@@ -56,4 +56,18 @@ public class AuthController {
         return authService.refreshToken(token.getRefreshToken());
     }
 
+    @PostMapping("/logoutToken")
+    public R<String> logoutToken(@RequestBody Token token){
+        if (token==null){
+            return R.error("访问被拒绝");
+        }
+        if (StringUtils.isEmpty(token.getAccessToken())){
+            return R.error("请提供完整AccessToken");
+        }
+        if (StringUtils.isEmpty(token.getRefreshToken())){
+            return R.error("请提供完整RefreshToken");
+        }
+        return authService.logoutToken(token);
+    }
+
 }

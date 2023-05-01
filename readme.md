@@ -50,11 +50,12 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 
 
 
-| 地址                                        | 请求方式   | ```params/data```                                            | return          |
-| ------------------------------------------- | ---------- | ------------------------------------------------------------ | --------------- |
-| ```/api2/oauth/accesstoken/```              | ```POST``` | ```accessToken```:拿token换当前用户数据**[注意大写请求参数名]** | 下方```JSON2``` |
-| ```/api2/oauth```/                          | ```POST``` | ```st```:就是回调后地址里的ticket                            | 下方```JSON1``` |
-| ```/api2/oauth/refreshtoken/``` | ```POST``` | ```refreshToken```:刷新令牌**[注意大写请求参数名]**          | 下方```JSON3``` |
+| 地址                                        | 请求方式   | ```params/data```                                           | return        |
+| ------------------------------------------- | ---------- |-------------------------------------------------------------|---------------|
+| ```/api2/oauth/accesstoken/```              | ```POST``` | ```accessToken```:拿token换当前用户数据**[注意大写请求参数名]**              | 下方```JSON2``` |
+| ```/api2/oauth```/                          | ```POST``` | ```st```:就是回调后地址里的ticket                                    | 下方```JSON1``` |
+| ```/api2/oauth/refreshtoken/``` | ```POST``` | ```refreshToken```:刷新令牌**[注意大写请求参数名]**                      | 下方```JSON3``` |
+| ```/api2/oauth/logoutToken/``` | ```POST``` | ```accessToken```:令牌 ```refreshToken```:刷新令牌**[注意大写请求参数名]** | 下方```JSON4``` |
 
 ```JSON1```：
 
@@ -123,6 +124,18 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
     "map": {}
 }
 ```
+```JSON4```
+```
+//这个接口用于对授权应用下线（不会对CAS下线,不是单点下线）
+为对单个接入oauth2.0应用下线
+//code为1下线成功
+{
+    "code": 1,
+    "msg": "下线成功[来自CAS服务器]",
+    "data": null,
+    "map": {}
+}
+```
 
 
 
@@ -138,7 +151,7 @@ http://192.168.12.122:55555/ [可能后续变更为10段，无所谓了，后端
 -[ ] 接口限流(总限流)
 -[ ] 接口加密
 -[ ] 引导
-
+-[ ] 单点登出 :方案，单独存一条，用tgt绑定多个Token类，单点登出尝试对所有token进行删除和对tgt，tgc进行删除
 
 
 ``[前端项目:https://github.com/abbhb/CASService-Front]```

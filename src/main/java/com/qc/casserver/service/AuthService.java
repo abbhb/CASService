@@ -10,4 +10,6 @@ public interface AuthService {
     R<UserResult> getUserByAccessToken(String accessToken);
 
     R<Token> refreshToken(String refreshToken);
+
+    R<String> logoutToken(Token token);
 }

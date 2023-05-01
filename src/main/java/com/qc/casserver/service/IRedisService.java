@@ -9,7 +9,22 @@ public interface IRedisService {
 
     void setWithTime(String key,Object value,Long time);
 
+    void addAccessToken(String key,Object value,Long time);
 
+    void addRefreshToken(String key,Object value,Long time);
+
+    void delRefreshToken(String key);
+    void delAccessToken(String key);
+
+    Object getRefreshToken(String key);
+    Object getAccessToken(String key);
+
+    Long getAccessTokenTTL(String uuid);
+    Long getRefreshTokenTTL(String uuid);
+
+    void setAccessTokenTTL(String key,Long time);
+
+    void setRefreshTokenTTL(String key,Long time);
 
     void del(String token);
 

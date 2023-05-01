@@ -40,18 +40,19 @@ public class AuthServiceImpl implements AuthService {
         if (StringUtils.isEmpty(st)){
             throw new CustomException("认证失败");
         }
+        //通过ST生成token
         String userId= iRedisService.getSTValue(st);
         log.info("st={},stvalue={}",st,userId);
         if (StringUtils.isEmpty(userId)){
             throw new CustomException("认证失败");
         }
         //accessToken 3小时
-        iRedisService.setWithTime(accessToken,userId,3*3600L);
+        iRedisService.addAccessToken(accessToken,userId,3*3600L);
         //refreshToken 12小时 并且存了accessToken
         RefreshToken refreshToken1 = new RefreshToken();
         refreshToken1.setAccessToken(accessToken);
         refreshToken1.setUserId(Long.valueOf(userId));
-        iRedisService.setWithTime(refreshToken,refreshToken1,12*3600L);
+        iRedisService.addRefreshToken(refreshToken,refreshToken1,12*300L);
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime localDateTime3 = now.plusHours(3);
         LocalDateTime localDateTime12 = now.plusHours(12);
@@ -69,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         if (StringUtils.isEmpty(accessToken)){
             throw new CustomException("认证失败");
         }
-        String userId = iRedisService.getValue(accessToken);
+        String userId = (String) iRedisService.getAccessToken(accessToken);
         if (StringUtils.isEmpty(userId)){
             throw new CustomException("认证失败");
         }
@@ -103,17 +104,17 @@ public class AuthServiceImpl implements AuthService {
             throw new CustomException("刷新失败");
         }
         //先判断是否存在没有过期的accesstoken
-        RefreshToken refreshToken1 = (RefreshToken) iRedisService.getValueObject(refreshToken);
+        RefreshToken refreshToken1 = (RefreshToken) iRedisService.getRefreshToken(refreshToken);
         if (refreshToken1==null){
             //这个refreshToken过期了
             return R.error("你的refreshToken过期了");
         }
         String accessToken = refreshToken1.getAccessToken();
-        Long tokenTTL = iRedisService.getTokenTTL(accessToken);
+        Long tokenTTL = iRedisService.getAccessTokenTTL(accessToken);
         if (tokenTTL>10){
             //还没过期
             //再给3小时
-            iRedisService.setTTL(accessToken,3*3600L);
+            iRedisService.setAccessTokenTTL(accessToken,3*3600L);
 
             Token token = new Token();
             token.setAccessToken(accessToken);
@@ -125,14 +126,31 @@ public class AuthServiceImpl implements AuthService {
         }
         //已经过期了，换新的accessToken
         UUID uuid = UUID.randomUUID();
-        String uuidString = uuid.toString();
-        iRedisService.setWithTime(uuidString,String.valueOf(refreshToken1.getUserId()),3*3600L);
+        String newAccessToken = uuid.toString();
+        iRedisService.addAccessToken(newAccessToken,String.valueOf(refreshToken1.getUserId()),3*3600L);
         Token token = new Token();
-        token.setAccessToken(uuidString);
+        token.setAccessToken(newAccessToken);
         token.setRefreshToken(refreshToken);
         token.setSign("DangDangDang");
         token.setAccessTokenExpiredTime(LocalDateTime.now().plusHours(3));
         token.setRefreshTokenExpiredTime(LocalDateTime.now().plusSeconds(tokenTTL));
         return R.successOnlyObjectWithStatus(token,2);
+    }
+
+    @Override
+    public R<String> logoutToken(Token token) {
+        if (token==null){
+            throw new CustomException("token不能为空");
+        }
+        if (StringUtils.isEmpty(token.getAccessToken())){
+            throw new CustomException("AccessToken不能为空");
+
+        }
+        if (StringUtils.isEmpty(token.getRefreshToken())){
+            throw new CustomException("RefreshToken不能为空");
+        }
+        iRedisService.delAccessToken(token.getAccessToken());
+        iRedisService.delRefreshToken(token.getRefreshToken());
+        return R.success("下线成功");
     }
 }

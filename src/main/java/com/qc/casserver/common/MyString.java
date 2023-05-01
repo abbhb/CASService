@@ -27,6 +27,7 @@ public class MyString {
     public final static String LIMITING_NameSpaces_USER = LIMITING_NameSpaces+"USER::";
 
 
+    public static Object pre_access_token = "access_token::";
 
-
+    public static Object pre_refresh_token = "refresh_token::";
 }
