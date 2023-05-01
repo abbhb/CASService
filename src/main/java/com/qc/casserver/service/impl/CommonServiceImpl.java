@@ -68,7 +68,7 @@ public class CommonServiceImpl implements CommonService {
 
         mailSender.send(message);
         log.info("发送验证码{}",email);
-        iRedisService.setTokenWithTime(MyString.pre_email_redis +email,verCode, 300L);
+        iRedisService.setWithTime(MyString.pre_email_redis +email,verCode, 300L);
         return R.success("发送成功,请前往你的邮箱获取验证码");
     }
 }

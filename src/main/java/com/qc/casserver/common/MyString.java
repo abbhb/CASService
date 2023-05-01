@@ -4,20 +4,32 @@ public class MyString {
     /**
      * 此配置当项目运行后不要轻易改变
      */
-    public final static String pre_phone_redis = "number_code:";
+    /**
+     * 总前缀
+     */
+    public final static String pre_all = "CAS::";
+    public final static String pre_phone_redis = pre_all+ "number_code:";
 
-    public final static String pre_email_redis = "emailcode:";
+    public final static String pre_email_redis = pre_all+ "emailcode:";
 
-    public final static String pre_user_redis = "user:";
+    public final static String pre_user_redis =pre_all+  "user:";
 
-    public final static String ST_PRE = "st:";
+    public final static String ST_PRE = pre_all+ "st:";
 
-    public final static String permission_key = "cas:permission";
+    public final static String permission_key = pre_all+ "cas:permission";
+
+
+    public static Object pre_tgc = pre_all+  "tgc_tgt::";
+
+    public static Object pre_access_token = pre_all+  "access_token::";
+
+    public static Object pre_refresh_token = pre_all+  "refresh_token::";
+
 
     /**
      * 限流
      */
-    public final static String LIMITING_NameSpaces = "LIMITING::";
+    public final static String LIMITING_NameSpaces = pre_all+ "LIMITING::";
 
     /**
      * 按用户进行限流，后面接userID
@@ -25,9 +37,4 @@ public class MyString {
      * LIMITING::USER::1::Controller
      */
     public final static String LIMITING_NameSpaces_USER = LIMITING_NameSpaces+"USER::";
-
-
-    public static Object pre_access_token = "access_token::";
-
-    public static Object pre_refresh_token = "refresh_token::";
 }

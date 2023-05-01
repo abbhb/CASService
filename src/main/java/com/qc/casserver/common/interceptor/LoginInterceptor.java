@@ -68,7 +68,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        String tgt = iRedisService.getValue(tgc);
+        String tgt = iRedisService.getTGC(tgc);
         log.info("tgt={},tgc={}",tgt,tgc);
         if (StringUtils.isEmpty(tgt)){
             return false;
@@ -81,8 +81,8 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
         //到了这里已经是登录的了,现在在这里做个优化,如果此时快过期了，可以无感知更新下票的有效期(注意同步更新前端的票)
-        if (iRedisService.getTokenTTL(tgc)<1500L){
-            iRedisService.setTTL(tgc,3*3600L);
+        if (iRedisService.getTGCTTL(tgc)<1500L){
+            iRedisService.setTGCTTL(tgc,3*3600L);
             Cookie cookie = new Cookie("tgc", tgc);
             cookie.setMaxAge(3 * 60 * 60); // 后面可以加入7天过期的功能,刷新cookie
             cookie.setPath("/");

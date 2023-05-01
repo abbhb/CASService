@@ -3,7 +3,10 @@ package com.qc.casserver.service;
 public interface IRedisService {
 //    String getTokenId(String token);
 
-    void setTokenWithTime(String tgc,String tgt,Long time);
+    void addTGCWithTGT(String tgc,String tgt,Long time);
+
+    Long getTGCTTL(String tgc);
+
 
     void setWithTime(String key,String value,Long time);
 
@@ -39,4 +42,8 @@ public interface IRedisService {
     void hashPut(String key,String hashKey,Object object);
 
     Object getHash(String key, String hashKey);
+
+    void setTGCTTL(String tgc, long l);
+
+    String getTGC(String tgc);
 }

@@ -27,8 +27,14 @@ public class IRedisServiceImpl implements IRedisService {
 //    }
 
     @Override
-    public void setTokenWithTime(String tgc, String tgt, Long time) {
-        redisTemplate.opsForValue().set(tgc, tgt, time, TimeUnit.SECONDS);
+    public void addTGCWithTGT(String tgc, String tgt, Long time) {
+        redisTemplate.opsForValue().set(MyString.pre_tgc+tgc, tgt, time, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public Long getTGCTTL(String tgc) {
+        Long expire = redisTemplate.getExpire(MyString.pre_tgc+tgc);
+        return expire;
     }
 
     @Override
@@ -120,6 +126,16 @@ public class IRedisServiceImpl implements IRedisService {
     }
 
     @Override
+    public void setTGCTTL(String tgc, long l) {
+        redisTemplate.expire(MyString.pre_tgc + tgc,l , TimeUnit.SECONDS);
+    }
+
+    @Override
+    public String getTGC(String tgc) {
+        return (String)redisTemplate.opsForValue().get(MyString.pre_tgc + tgc);
+    }
+
+    @Override
     public Long getTokenTTL(String uuid) {
         Long expire = redisTemplate.getExpire(uuid);
         return expire;
@@ -138,6 +154,7 @@ public class IRedisServiceImpl implements IRedisService {
     public Object getValueObject(String key) {
         return redisTemplate.opsForValue().get(key);
     }
+
 
 
     @Override

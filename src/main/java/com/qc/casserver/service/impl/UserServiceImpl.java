@@ -117,7 +117,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //返回给浏览器，写入cookie
         String tgc = TicketUtil.addNewTGC(String.valueOf(one.getId()),one.getUsername());
         String st = TicketUtil.addNewST(one.getUsername(), one.getId(), one.getPermission());
-        iRedisService.setTokenWithTime(tgc, tgt,3*3600L);//token作为value，id是不允许更改的
+        iRedisService.addTGCWithTGT(tgc, tgt,3*3600L);//token作为value，id是不允许更改的
         //15过期的st,防止网络缓慢
         iRedisService.setST(st,String.valueOf(one.getId()));
         UserResult userResult = new UserResult();
@@ -161,7 +161,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
         String st = TicketUtil.addNewST(one.getUsername(), one.getId(), one.getPermission());
         log.info(st);
-        iRedisService.setTokenWithTime(tgc, tgt,3*3600L);//token作为value，id是不允许更改的
+        iRedisService.addTGCWithTGT(tgc, tgt,3*3600L);//token作为value，id是不允许更改的
         //15过期的st,防止网络缓慢
         iRedisService.setST(st,String.valueOf(one.getId()));
         UserResult userResult = new UserResult();
