@@ -1,7 +1,5 @@
 package com.qc.casserver.common.interceptor;
 
-
-import com.qc.casserver.common.R;
 import com.qc.casserver.common.annotation.NeedLogin;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.service.IRedisService;
@@ -9,7 +7,6 @@ import com.qc.casserver.service.UserService;
 
 import com.qc.casserver.utils.ThreadLocalUtil;
 import com.qc.casserver.utils.TicketUtil;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

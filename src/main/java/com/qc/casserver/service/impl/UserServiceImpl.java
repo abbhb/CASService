@@ -145,7 +145,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StringUtils.isEmpty(tgc)){
             throw new CustomException("出错了");
         }
-        String tgt = iRedisService.getValue(tgc);
+        String tgt = iRedisService.getTGC(tgc);
         if (StringUtils.isEmpty(tgt)){
             throw new CustomException("需要认证");
         }
