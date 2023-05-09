@@ -4,10 +4,12 @@ package com.qc.casserver.service.impl;
 import com.qc.casserver.common.CustomException;
 import com.qc.casserver.common.MyString;
 import com.qc.casserver.common.R;
+import com.qc.casserver.config.LoginConfig;
 import com.qc.casserver.config.MinIoProperties;
+import com.qc.casserver.pojo.EmailCode;
+import com.qc.casserver.service.CaptchaService;
 import com.qc.casserver.service.CommonService;
 import com.qc.casserver.service.IRedisService;
-import com.qc.casserver.service.UserService;
 import com.qc.casserver.utils.MinIoUtil;
 import com.qc.casserver.utils.VerCodeGenerateUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -27,6 +30,14 @@ public class CommonServiceImpl implements CommonService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Autowired
+    private LoginConfig loginConfig;
+
+    @Autowired
+    private CaptchaService captchaService;
+
+
 
     @Autowired
     public CommonServiceImpl(IRedisService iRedisService) {
@@ -55,12 +66,25 @@ public class CommonServiceImpl implements CommonService {
     }
 
     @Override
-    public R<String> sendEmailCode(String email) {
+    public R<String> sendEmailCode(EmailCode emailCode) {
+
+
+        if (loginConfig.isNeedCaptcha()){
+            if (StringUtils.isEmpty(emailCode.getRandomCode())||StringUtils.isEmpty(emailCode.getVerificationCode())){
+                throw new CustomException("验证码缺少参数");
+            }
+            //需要验证码
+            String msg = captchaService.checkImageCode(emailCode.getRandomCode(), emailCode.getVerificationCode());
+            if (StringUtils.isNotBlank(msg)) {
+                throw new CustomException("需要验证码!");
+            }
+        }
+
         SimpleMailMessage message = new SimpleMailMessage();
 
         message.setFrom("3482238110@qq.com");
 
-        message.setTo(email);
+        message.setTo(emailCode.getEmail());
 
         message.setSubject("您本次的验证码是");
 
@@ -74,8 +98,8 @@ public class CommonServiceImpl implements CommonService {
 
 
         mailSender.send(message);
-        log.info("发送验证码{}",email);
-        iRedisService.setWithTime(MyString.pre_email_redis +email,verCode, 300L);
-        return R.success("发送成功,请前往你的邮箱获取验证码");
+        log.info("发送验证码{}",emailCode.getEmail());
+        iRedisService.setWithTime(MyString.pre_email_redis +emailCode.getEmail(),verCode, 300L);
+        return R.successOnlyMsg("发送成功,请前往你的邮箱获取验证码");
     }
 }

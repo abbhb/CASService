@@ -12,7 +12,6 @@ import com.qc.casserver.common.CustomException;
 import com.qc.casserver.common.MyString;
 
 import com.qc.casserver.common.R;
-import com.qc.casserver.config.LoginConfig;
 import com.qc.casserver.mapper.UserMapper;
 import com.qc.casserver.pojo.UserResult;
 import com.qc.casserver.pojo.entity.PageData;
@@ -44,23 +43,19 @@ import static com.qc.casserver.utils.ParamsCalibration.checkSensitiveWords;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    private final LoginConfig loginConfig;
     private final IRedisService iRedisService;
 
     @Autowired
     private InviteCodeService inviteCodeService;
     private final CommonService commonService;
-    private final CaptchaService captchaService;
 
     @Autowired
     private Map<String,Object> usersMap;
 
     @Autowired
-    public UserServiceImpl(LoginConfig loginConfig, IRedisService iRedisService, CommonService commonService, CaptchaService captchaService) {
-        this.loginConfig = loginConfig;
+    public UserServiceImpl(IRedisService iRedisService, CommonService commonService) {
         this.iRedisService = iRedisService;
         this.commonService = commonService;
-        this.captchaService = captchaService;
     }
 
     public User getManyUserById(Long id){
@@ -414,15 +409,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!isTrue){
             throw new CustomException("邀请码错误");
         }
-        if (loginConfig.isNeedCaptcha()){
-            if (StringUtils.isEmpty(user.getRandomCode())||StringUtils.isEmpty(user.getVerificationCode())){
-                throw new CustomException("验证码缺少参数");
-            }
-            //需要验证码
-            String msg = captchaService.checkImageCode(user.getRandomCode(), user.getVerificationCode());
-            if (StringUtils.isNotBlank(msg)) {
-                throw new CustomException("请重试!");            }
-        }
 
         checkSensitiveWords(user.getName());
         if (StringUtils.isEmpty(user.getEmail())){
@@ -440,12 +426,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StringUtils.isEmpty(user.getEmail())){
             throw new CustomException("邮箱缺少");
         }
-        if (StringUtils.isEmpty(user.getMailCode())){
-            throw new CustomException("邮箱验证码缺少");
-        }
         String mailCode = iRedisService.getValue(MyString.pre_email_redis+user.getEmail());
         if (StringUtils.isEmpty(mailCode)||!mailCode.equals(user.getMailCode())){
-            throw new CustomException("验证码错误");
+            throw new CustomException("邮箱验证码错误");
         }
 
         LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();

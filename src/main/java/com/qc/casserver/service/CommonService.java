@@ -1,6 +1,7 @@
 package com.qc.casserver.service;
 
 import com.qc.casserver.common.R;
+import com.qc.casserver.pojo.EmailCode;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface CommonService {
@@ -9,5 +10,5 @@ public interface CommonService {
 
     String getFileFromMinio(String id);
 
-    R<String> sendEmailCode(String email);
+    R<String> sendEmailCode(EmailCode email);
 }

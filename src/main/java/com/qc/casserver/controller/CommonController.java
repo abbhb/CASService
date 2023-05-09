@@ -4,6 +4,8 @@ package com.qc.casserver.controller;
 import com.qc.casserver.common.R;
 import com.qc.casserver.common.annotation.NeedLogin;
 import com.qc.casserver.common.annotation.PermissionCheck;
+import com.qc.casserver.config.LoginConfig;
+import com.qc.casserver.pojo.EmailCode;
 import com.qc.casserver.pojo.entity.Captcha;
 import com.qc.casserver.service.CaptchaService;
 import com.qc.casserver.service.CommonService;
@@ -22,6 +24,9 @@ public class CommonController {
     private CommonService commonService;
 
     @Autowired
+    private LoginConfig loginConfig;
+
+    @Autowired
     private CaptchaService captchaService;
     @CrossOrigin("*")
     @NeedLogin
@@ -32,10 +37,13 @@ public class CommonController {
 
     }
 
-    @GetMapping("/getCode")
-    public R<String> getCode(String email){
+    @PostMapping("/getEmailCode")
+    public R<String> getCode(@RequestBody EmailCode emailCode){
+        if (emailCode==null){
+            return R.error("发送失败");
+        }
         //此接口需加密，并且对用户限流
-        return commonService.sendEmailCode(email);
+        return commonService.sendEmailCode(emailCode);
     }
     @NeedLogin
     @GetMapping("/getImage")
@@ -52,6 +60,20 @@ public class CommonController {
     @PostMapping("/getCaptcha")
     public R<Captcha> getCaptcha(@RequestBody Captcha captcha) {
         return R.success(captchaService.getCaptcha(captcha));
+    }
+
+    /**
+     * 1为需要，
+     * 0为不需要
+     * @return
+     */
+    @CrossOrigin("*")
+    @GetMapping("/getIfNeedCaptcha")
+    public R<Integer> getIfNeedCaptcha(){
+        if (loginConfig.isNeedCaptcha()){
+            return R.success(1);
+        }
+        return R.success(0);
     }
     @CrossOrigin("*")
     @PostMapping("/checkImageCode")

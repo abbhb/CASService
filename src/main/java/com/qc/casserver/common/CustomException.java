@@ -5,6 +5,6 @@ package com.qc.casserver.common;
  */
 public class CustomException extends RuntimeException{
     public CustomException(String msg){
-        super(msg + "[来自CAS服务器]");
+        super(msg);
     }
 }
