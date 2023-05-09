@@ -8,17 +8,20 @@ import com.qc.casserver.common.CustomException;
 import com.qc.casserver.common.R;
 import com.qc.casserver.mapper.InviteCodeMapper;
 import com.qc.casserver.pojo.InviteCodeResult;
+import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.pojo.entity.invitecode.InviteCode;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.invitecode.ListInviteCode;
 import com.qc.casserver.service.IRedisService;
 import com.qc.casserver.service.InviteCodeService;
+import com.qc.casserver.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,12 +29,9 @@ import java.util.List;
 @Service
 @Slf4j
 public class InviteCodeServiceImpl extends ServiceImpl<InviteCodeMapper, InviteCode> implements InviteCodeService {
-    private final IRedisService iRedisService;
 
     @Autowired
-    public InviteCodeServiceImpl(IRedisService iRedisService) {
-        this.iRedisService = iRedisService;
-    }
+    private UserService userService;
 
     @Transactional
     @Override
@@ -120,6 +120,10 @@ public class InviteCodeServiceImpl extends ServiceImpl<InviteCodeMapper, InviteC
             inviteCodeResult1.setInviteCode(inviteCodeitem.getInviteCode());
             inviteCodeResult1.setId(String.valueOf(inviteCodeitem.getId()));
             inviteCodeResult1.setPersistence(inviteCodeitem.getPersistence());
+            User manyUserById = userService.getManyUserById(inviteCodeitem.getCreateUser());
+            if (manyUserById!=null){
+                inviteCodeResult1.setCreateUser(manyUserById.getName());
+            }
             inviteCodeResult1.setCreateTime(inviteCodeitem.getCreateTime());
             inviteCodeResult1.setUsageCount(inviteCodeitem.getUsageCount());
             results.add(inviteCodeResult1);

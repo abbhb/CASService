@@ -10,6 +10,8 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
 
+
+
 //    public List<User> getAllUserIncludeDeleted();
 //
 //    public User getUserIncludeDeleted(@Param("id") Long id);

@@ -35,6 +35,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static com.qc.casserver.utils.ParamsCalibration.checkSensitiveWords;
 
@@ -46,16 +47,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final LoginConfig loginConfig;
     private final IRedisService iRedisService;
 
-    private final InviteCodeService inviteCodeService;
+    @Autowired
+    private InviteCodeService inviteCodeService;
     private final CommonService commonService;
     private final CaptchaService captchaService;
+
     @Autowired
-    public UserServiceImpl(LoginConfig loginConfig, IRedisService iRedisService, InviteCodeService inviteCodeService, CommonService commonService, CaptchaService captchaService) {
+    private Map<String,Object> usersMap;
+
+    @Autowired
+    public UserServiceImpl(LoginConfig loginConfig, IRedisService iRedisService, CommonService commonService, CaptchaService captchaService) {
         this.loginConfig = loginConfig;
         this.iRedisService = iRedisService;
-        this.inviteCodeService = inviteCodeService;
         this.commonService = commonService;
         this.captchaService = captchaService;
+    }
+
+    public User getManyUserById(Long id){
+        User user = (User) usersMap.get(String.valueOf(id));
+        if (user!=null){
+            return user;
+        }
+        User userNew = getById(id);
+        if (userNew==null){
+            throw new CustomException("异常");
+        }
+        usersMap.put(String.valueOf(id),userNew);
+        return userNew;
     }
 
     @Override
