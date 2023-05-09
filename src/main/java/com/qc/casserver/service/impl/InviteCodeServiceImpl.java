@@ -202,6 +202,7 @@ public class InviteCodeServiceImpl extends ServiceImpl<InviteCodeMapper, InviteC
         if (one.getPersistence()==1){
             LambdaUpdateWrapper<InviteCode> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
             lambdaUpdateWrapper.set(InviteCode::getUsageCount,one.getUsageCount()+1);
+            lambdaQueryWrapper.eq(InviteCode::getInviteCode,inviteCode);
             super.update(lambdaUpdateWrapper);
         }else {
             this.removeById(one.getId());
