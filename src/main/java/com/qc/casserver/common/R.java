@@ -35,19 +35,12 @@ public class R<T> {
         r.code = 1;
         return r;
     }
-    public static <T> R<T> success(String msg) {
-        R<T> r = new R<T>();
-        r.msg = msg + suffix;
-        r.code = 1;
-        return r;
-    }
 
 
-
-    public static <T> R<T> successOnlyMsg(String msg,Integer code) {
+    public static <T> R<T> successOnlyMsg(String msg) {
         R<T> r = new R<T>();
         r.msg =  msg + suffix;
-        r.code = code;
+        r.code = 1;
         return r;
     }
 
@@ -61,6 +54,9 @@ public class R<T> {
     public static <T> R<T> error(Integer code,String msg) {
         R r = new R();
         r.msg = msg + suffix;
+        if (code==1){
+            r.msg = msg;
+        }
         r.code = code;
         return r;
     }

@@ -19,10 +19,7 @@ import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.Permission;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.pojo.vo.RegisterUser;
-import com.qc.casserver.service.CaptchaService;
-import com.qc.casserver.service.IRedisService;
-import com.qc.casserver.service.InviteCodeService;
-import com.qc.casserver.service.UserService;
+import com.qc.casserver.service.*;
 import com.qc.casserver.utils.PWDMD5;
 
 import com.qc.casserver.utils.RandomName;
@@ -34,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,15 +47,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final IRedisService iRedisService;
 
     private final InviteCodeService inviteCodeService;
+    private final CommonService commonService;
     private final CaptchaService captchaService;
     @Autowired
-    public UserServiceImpl(LoginConfig loginConfig, IRedisService iRedisService, InviteCodeService inviteCodeService, CaptchaService captchaService) {
+    public UserServiceImpl(LoginConfig loginConfig, IRedisService iRedisService, InviteCodeService inviteCodeService, CommonService commonService, CaptchaService captchaService) {
         this.loginConfig = loginConfig;
         this.iRedisService = iRedisService;
         this.inviteCodeService = inviteCodeService;
+        this.commonService = commonService;
         this.captchaService = captchaService;
     }
 
+    @Override
+    public User getById(Serializable id) {
+        User user = super.getById(id);
+        if (user==null){
+            throw new CustomException("异常");
+        }
+        if (!StringUtils.isEmpty(user.getAvatar())){
+            String fileFromMinio = commonService.getFileFromMinio(user.getAvatar());
+            user.setAvatar(fileFromMinio);
+        }
+        return user;
+    }
 
     //重写save方法,校验用户名重复
     //不使用唯一索引是为了逻辑删除后避免用户名不能再次使用
@@ -150,7 +162,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new CustomException("需要认证");
         }
         String userIdByTGT = TicketUtil.getUserIdByTGT(tgt);
-        User one = super.getById(userIdByTGT);
+        User one = getById(userIdByTGT);
         if (one==null){
             throw new CustomException("需要认证");
         }
@@ -195,7 +207,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new CustomException("认证失败");
         }
         String userId = TicketUtil.getUserId(st);
-        User one = super.getById(Long.valueOf(userId));
+        User one = getById(Long.valueOf(userId));
         if (one==null){
             throw new CustomException("业务异常;");
         }
@@ -329,7 +341,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!user.getPassword().matches("^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$")){
             return R.error("密码必须字母加数字,8-16位");
         }
-        User byId = super.getById(userId);
+        User byId = getById(userId);
         Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(user.getPermission()));
         Permission permissionMyId = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(byId.getPermission()));
         if (permissionMyId.getWeight()<=permission.getWeight()){
@@ -451,7 +463,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //        if (StringUtils.isEmpty(value)) {
 //            return R.error("登录过期");
 //        }
-//        User one = super.getById(Long.valueOf(value));
+//        User one =getById(Long.valueOf(value));
 //        if (one==null){
 //            return R.error("err");
 //        }
@@ -477,7 +489,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
 
-        User myId = super.getById(userId);
+        User myId = getById(userId);
         if (myId==null){
             //don't hava object
             throw new CustomException("没有对象");
@@ -492,7 +504,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             String[] split = id.split(",");
             for (String s:
                     split) {
-                User byId = super.getById(Long.valueOf(s));
+                User byId = getById(Long.valueOf(s));
                 if (byId==null){
                     //don't hava object
                     throw new CustomException("没有对象");
@@ -511,7 +523,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
             update = super.updateBatchById(users);
         }else {
-            User byId = super.getById(Long.valueOf(id));
+            User byId = getById(Long.valueOf(id));
             if (byId==null){
                 //don't hava object
                 throw new CustomException("没有对象");
@@ -574,7 +586,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         lambdaUpdateWrapper.set(User::getAvatar,user.getAvatar());
         boolean update = super.update(lambdaUpdateWrapper);
         if (update){
-            return R.success("更新成功");
+            return R.successOnlyMsg("更新成功");
         }
         return R.error("err");
     }
@@ -611,7 +623,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         lambdaUpdateWrapper.set(User::getAvatar,user.getAvatar());
         boolean update = super.update(lambdaUpdateWrapper);
         if (update){
-            return R.success("更新成功");
+            return R.successOnlyMsg("更新成功");
         }
         return R.error("err");
     }
@@ -661,7 +673,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //操作数据库更新密码和盐
         boolean update = super.update(user, lambdaUpdateWrapper);
         if (update){
-            return R.success("修改成功");
+            return R.successOnlyMsg("修改成功");
         }
 
         return R.error("修改失败");
@@ -683,7 +695,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //        if (userId==null){
 //            throw new CustomException("业务异常");
 //        }
-//        User byId = super.getById(userId);
+//        User byId = getById(userId);
 //        if (byId==null){
 //            throw new CustomException("业务异常");
 //        }
@@ -778,7 +790,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new CustomException("新邮箱验证码错误");
         }
         //判断当前用户是否以前绑定过邮箱
-        User byId = super.getById(userId);
+        User byId = getById(userId);
         if (byId==null){
             throw new CustomException("用户不存在");
         }

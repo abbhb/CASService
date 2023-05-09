@@ -7,5 +7,7 @@ public interface CommonService {
 
     R<String> uploadFileTOMinio(MultipartFile file);
 
+    String getFileFromMinio(String id);
+
     R<String> sendEmailCode(String email);
 }

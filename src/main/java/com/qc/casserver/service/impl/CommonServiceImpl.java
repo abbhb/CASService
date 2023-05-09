@@ -11,6 +11,7 @@ import com.qc.casserver.service.UserService;
 import com.qc.casserver.utils.MinIoUtil;
 import com.qc.casserver.utils.VerCodeGenerateUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -24,14 +25,12 @@ public class CommonServiceImpl implements CommonService {
     MinIoProperties minIoProperties;
     private final IRedisService iRedisService;
 
-    private final UserService userService;
     @Autowired
     private JavaMailSender mailSender;
 
     @Autowired
-    public CommonServiceImpl(IRedisService iRedisService, UserService userService) {
+    public CommonServiceImpl(IRedisService iRedisService) {
         this.iRedisService = iRedisService;
-        this.userService = userService;
     }
 
     public R<String> uploadFileTOMinio(MultipartFile file) {
@@ -39,12 +38,20 @@ public class CommonServiceImpl implements CommonService {
             String fileUrl = MinIoUtil.upload(minIoProperties.getBucketName(), file);
             log.info("imageUrl={}",fileUrl);
             String[] split = fileUrl.split("\\?");
+            String split1 = split[0].split(minIoProperties.getBucketName()+"/")[1];
 
-            return R.successOnlyObject(split[0]);
+            return R.successOnlyObject(split1);
         }catch (Exception e){
             e.printStackTrace();
             throw new CustomException(e.getMessage());
         }
+    }
+
+    public String getFileFromMinio(String id){
+        if (StringUtils.isEmpty(id)){
+            return "";
+        }
+        return minIoProperties.getUrl()+"/"+minIoProperties.getBucketName()+"/"+id;
     }
 
     @Override

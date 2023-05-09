@@ -37,6 +37,11 @@ public class CommonController {
         //此接口需加密，并且对用户限流
         return commonService.sendEmailCode(email);
     }
+    @NeedLogin
+    @GetMapping("/getImage")
+    public R<String> getImageTrueUrl(String id){
+        return R.success(new String(commonService.getFileFromMinio(id)));
+    }
 
     /**
      * 获取验证码拼图
@@ -55,7 +60,7 @@ public class CommonController {
         if (!StringUtils.isEmpty(s)){
             return R.error(s);
         }
-        return R.success("校验成功");
+        return R.successOnlyMsg("校验成功");
     }
 
 
