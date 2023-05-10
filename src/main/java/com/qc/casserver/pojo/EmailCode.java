@@ -14,4 +14,9 @@ public class EmailCode implements Serializable {
     private String randomCode;//key
 
     private String verificationCode;
+
+    /**
+     * 邮箱验证码
+     */
+    private String emailCode;
 }

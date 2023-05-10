@@ -37,6 +37,7 @@ public class CommonController {
 
     }
 
+
     @PostMapping("/getEmailCode")
     public R<String> getCode(@RequestBody EmailCode emailCode){
         if (emailCode==null){
@@ -44,6 +45,17 @@ public class CommonController {
         }
         //此接口需加密，并且对用户限流
         return commonService.sendEmailCode(emailCode);
+    }
+
+    @PostMapping("/havaEmailCode")
+    public R<Integer> havaEmailCode(@RequestBody EmailCode emailCode){
+        //若调用此接口1天内超过100以上次封号处理，保护安全（依托限流）
+        //5次以上直接不告诉是否正确,后期限流
+        if (emailCode==null){
+            return R.error("校验失败");
+        }
+        //此接口需加密，并且对用户限流
+        return commonService.havaEmailCode(emailCode);
     }
     @NeedLogin
     @GetMapping("/getImage")

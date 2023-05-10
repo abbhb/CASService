@@ -102,4 +102,13 @@ public class CommonServiceImpl implements CommonService {
         iRedisService.setWithTime(MyString.pre_email_redis +emailCode.getEmail(),verCode, 300L);
         return R.successOnlyMsg("发送成功,请前往你的邮箱获取验证码");
     }
+
+    @Override
+    public R<Integer> havaEmailCode(EmailCode emailCode) {
+        String mailCode = iRedisService.getValue(MyString.pre_email_redis+emailCode.getEmail());
+        if (emailCode.getEmailCode().equals(mailCode)){
+            return R.success(1);
+        }
+        return R.success(0);
+    }
 }

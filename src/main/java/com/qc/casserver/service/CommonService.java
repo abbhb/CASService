@@ -11,4 +11,6 @@ public interface CommonService {
     String getFileFromMinio(String id);
 
     R<String> sendEmailCode(EmailCode email);
+
+    R<Integer> havaEmailCode(EmailCode emailCode);
 }
