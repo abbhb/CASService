@@ -822,4 +822,53 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return R.error("异常");
     }
 
+    @Transactional
+    @Override
+    public R<String> findPassword(RegisterUser registerUser) {
+        if (StringUtils.isEmpty(registerUser.getEmail())) {
+            return R.error("邮箱不能为空");
+        }
+        if (StringUtils.isEmpty(registerUser.getPassword())) {
+            return R.error("密码不能为空");
+        }
+        if (StringUtils.isEmpty(registerUser.getRePassword())) {
+            return R.error("确认密码不能为空");
+        }
+        if (!registerUser.getPassword().equals(registerUser.getRePassword())) {
+            return R.error("两次密码不一致");
+        }
+        if (StringUtils.isEmpty(registerUser.getMailCode())) {
+            return R.error("邮箱验证码不能为空");
+        }
+        //校验邮箱验证码
+        String value = iRedisService.getValue(MyString.pre_email_redis + registerUser.getEmail());
+        if (StringUtils.isEmpty(value)) {
+            return R.error("邮箱验证码已过期");
+        }
+        if (!value.equals(registerUser.getMailCode())) {
+            return R.error("邮箱验证码错误");
+        }
+        //校验邮箱是否存在
+        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(User::getEmail, registerUser.getEmail());
+        User one = super.getOne(lambdaQueryWrapper);
+        if (one == null) {
+            return R.error("邮箱不存在");
+        }
+        //修改密码
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        String salt = PWDMD5.getSalt();
+        String md5Encryption = PWDMD5.getMD5Encryption(registerUser.getPassword(), salt);
+        lambdaUpdateWrapper.set(User::getPassword,md5Encryption);
+        lambdaUpdateWrapper.set(User::getSalt,salt);
+        lambdaUpdateWrapper.eq(User::getId, one.getId());
+        boolean update = super.update(lambdaUpdateWrapper);
+        if (update) {
+            //删除验证码
+            iRedisService.del(MyString.pre_email_redis + registerUser.getEmail());
+            return R.success("修改成功");
+        }
+        return R.success("修改失败");
+    }
+
 }

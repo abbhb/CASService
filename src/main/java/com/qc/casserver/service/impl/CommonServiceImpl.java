@@ -105,6 +105,12 @@ public class CommonServiceImpl implements CommonService {
 
     @Override
     public R<Integer> havaEmailCode(EmailCode emailCode) {
+        if (StringUtils.isEmpty(emailCode.getEmail())){
+            return R.error("null");
+        }
+        if (StringUtils.isEmpty(emailCode.getEmailCode())){
+            return R.error("null");
+        }
         String mailCode = iRedisService.getValue(MyString.pre_email_redis+emailCode.getEmail());
         if (emailCode.getEmailCode().equals(mailCode)){
             return R.success(1);

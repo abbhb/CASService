@@ -328,6 +328,27 @@ public class UserController {
         return userService.changePassword(id, username, password, newpassword, checknewpassword);
     }
 
+    @PutMapping("/v1/findPassword")
+    public R<String> findPassword(@RequestBody RegisterUser registerUser) {
+        log.info("registerUser = {}", registerUser);
+        if (StringUtils.isEmpty(registerUser.getEmail())) {
+            return R.error("邮箱不能为空");
+        }
+        if (StringUtils.isEmpty(registerUser.getPassword())) {
+            return R.error("密码不能为空");
+        }
+        if (StringUtils.isEmpty(registerUser.getRePassword())) {
+            return R.error("确认密码不能为空");
+        }
+        if (!registerUser.getPassword().equals(registerUser.getRePassword())) {
+            return R.error("两次密码不一致");
+        }
+        if (StringUtils.isEmpty(registerUser.getMailCode())) {
+            return R.error("邮箱验证码不能为空");
+        }
+        return userService.findPassword(registerUser);
+    }
+
     @NeedLogin
     @PostMapping("/logout")
     public R<UserResult> logout(HttpServletRequest request, HttpServletResponse response) {
