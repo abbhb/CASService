@@ -1,5 +1,7 @@
 package com.qc.casserver.service;
 
+import java.util.Set;
+
 public interface IRedisService {
 //    String getTokenId(String token);
 
@@ -14,10 +16,15 @@ public interface IRedisService {
 
     void addAccessToken(String key,Object value,Long time);
 
+    Set<String> getLogout(String userId);
+
+    void delLogoutOne(String userId,String key);
+
     void addRefreshToken(String key,Object value,Long time);
 
     void delRefreshToken(String key);
     void delAccessToken(String key);
+
 
     Object getRefreshToken(String key);
     Object getAccessToken(String key);
@@ -45,5 +52,9 @@ public interface IRedisService {
 
     void setTGCTTL(String tgc, long l);
 
-    String getTGC(String tgc);
+    String getTGT(String tgc);
+
+    void delLogout(Long userId);
+
+    Long getLogoutSize(String userId);
 }

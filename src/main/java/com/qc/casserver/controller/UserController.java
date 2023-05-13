@@ -349,6 +349,13 @@ public class UserController {
         return userService.findPassword(registerUser);
     }
 
+    /**
+     * 变更为单点登出
+     * 登出该用户下所有的授权
+     * @param request
+     * @param response
+     * @return
+     */
     @NeedLogin
     @PostMapping("/logout")
     public R<UserResult> logout(HttpServletRequest request, HttpServletResponse response) {
@@ -358,6 +365,13 @@ public class UserController {
         cookie.setPath("/");
         response.addCookie(cookie);
         return userService.logout(tgcInRequest);
+    }
+
+    @NeedLogin
+    @GetMapping("/logoutSize")
+    public R<String> getLogoutSize(HttpServletRequest request, HttpServletResponse response) {
+        String tgcInRequest = TGTUtil.getTGCInRequest(request);
+        return userService.getLogoutSize(tgcInRequest);
     }
 
 

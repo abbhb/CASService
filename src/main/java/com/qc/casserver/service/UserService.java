@@ -47,4 +47,6 @@ public interface UserService extends IService<User> {
     R<String> emailWithUser(String originEmail, String originCode,String newEmail, String newCode, Long userId);
 
     R<String> findPassword(RegisterUser registerUser);
+
+    R<String> getLogoutSize(String tgcInRequest);
 }

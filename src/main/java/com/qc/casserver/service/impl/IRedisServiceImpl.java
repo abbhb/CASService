@@ -3,11 +3,13 @@ package com.qc.casserver.service.impl;
 
 
 import com.qc.casserver.common.MyString;
+import com.qc.casserver.pojo.entity.RefreshToken;
 import com.qc.casserver.service.IRedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static com.qc.casserver.common.MyString.ST_PRE;
@@ -47,14 +49,32 @@ public class IRedisServiceImpl implements IRedisService {
     }
 
     /**
+     * 以下都同步操作logout记录
+     */
+    /**
      * 往redis里存入accessToken
      * @param key
-     * @param value
+     * @param value userId
      * @param time Seconds
      */
     @Override
     public void addAccessToken(String key,Object value,Long time) {
         redisTemplate.opsForValue().set(MyString.pre_access_token + key, value, time, TimeUnit.SECONDS);
+        String s = MyString.pre_logout(Long.valueOf((String) value));
+        redisTemplate.opsForSet().add(s, MyString.pre_access_token + key);
+    }
+
+    @Override
+    public Set<String> getLogout(String userId) {
+        String s = MyString.pre_logout(Long.valueOf(userId));
+        Set<String> members = redisTemplate.opsForSet().members(s);
+        return members;
+    }
+
+    @Override
+    public void delLogoutOne(String userId, String key) {
+        String s = MyString.pre_logout(Long.valueOf(userId));
+        redisTemplate.opsForSet().remove(s, key);
     }
 
     /**
@@ -66,16 +86,49 @@ public class IRedisServiceImpl implements IRedisService {
     @Override
     public void addRefreshToken(String key,Object value,Long time) {
         redisTemplate.opsForValue().set(MyString.pre_refresh_token + key, value, time, TimeUnit.SECONDS);
+        String s = MyString.pre_logout(((RefreshToken) value).getUserId());
+        redisTemplate.opsForSet().add(s, MyString.pre_refresh_token + key);
     }
 
     @Override
     public void delRefreshToken(String key) {
-        redisTemplate.delete(MyString.pre_access_token + key);
+        Object o = redisTemplate.opsForValue().get(MyString.pre_refresh_token + key);
+        if (o!=null){
+            String s = MyString.pre_logout(((RefreshToken) o).getUserId());
+            redisTemplate.opsForSet().remove(s, key);
+        }
+        redisTemplate.delete(MyString.pre_refresh_token + key);
     }
 
     @Override
     public void delAccessToken(String key) {
-        redisTemplate.delete(MyString.pre_refresh_token + key);
+        Object o = redisTemplate.opsForValue().get(MyString.pre_access_token + key);
+        if (o!=null){
+            String s = MyString.pre_logout(Long.valueOf((String) o));
+            redisTemplate.opsForSet().remove(s, key);
+        }
+        redisTemplate.delete(MyString.pre_access_token + key);
+
+    }
+
+    @Override
+    public void setAccessTokenTTL(String key, Long time) {
+        Object o = redisTemplate.opsForValue().get(MyString.pre_access_token + key);
+        if (o!=null){
+            String s = MyString.pre_logout(Long.valueOf((String) o));
+            redisTemplate.opsForSet().add(s, MyString.pre_access_token + key);
+        }
+        redisTemplate.expire(MyString.pre_access_token + key,time , TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void setRefreshTokenTTL(String key, Long time) {
+        Object o = redisTemplate.opsForValue().get(MyString.pre_refresh_token + key);
+        if (o!=null){
+            String s = MyString.pre_logout(((RefreshToken) o).getUserId());
+            redisTemplate.opsForSet().add(s, MyString.pre_refresh_token + key);
+        }
+        redisTemplate.expire(MyString.pre_refresh_token + key,time , TimeUnit.SECONDS);
     }
 
     @Override
@@ -100,21 +153,25 @@ public class IRedisServiceImpl implements IRedisService {
         return expire;
     }
 
-    @Override
-    public void setAccessTokenTTL(String key, Long time) {
-        redisTemplate.expire(MyString.pre_access_token + key,time , TimeUnit.SECONDS);
-    }
 
-    @Override
-    public void setRefreshTokenTTL(String key, Long time) {
-        redisTemplate.expire(MyString.pre_refresh_token + key,time , TimeUnit.SECONDS);
-    }
 
     @Override
     public void del(String token) {
         redisTemplate.delete(token);
 
     }
+    @Override
+    public void delLogout(Long userId){
+        redisTemplate.delete(MyString.pre_logout(userId));
+    }
+
+    @Override
+    public Long getLogoutSize(String userId) {
+        //获取集合的大小
+        Long size = redisTemplate.opsForSet().size(MyString.pre_logout(Long.valueOf(userId)));
+        return size;
+    }
+
     @Override
     public void hashPut(String key,String hashKey,Object object) {
         redisTemplate.opsForHash().put(key,hashKey,object);
@@ -131,7 +188,7 @@ public class IRedisServiceImpl implements IRedisService {
     }
 
     @Override
-    public String getTGC(String tgc) {
+    public String getTGT(String tgc) {
         return (String)redisTemplate.opsForValue().get(MyString.pre_tgc + tgc);
     }
 
@@ -166,5 +223,6 @@ public class IRedisServiceImpl implements IRedisService {
     public void setST(String st, String value) {
         redisTemplate.opsForValue().set(ST_PRE+st, value, 15L, TimeUnit.SECONDS);
     }
+
 
 }

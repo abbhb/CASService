@@ -65,7 +65,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        String tgt = iRedisService.getTGC(tgc);
+        String tgt = iRedisService.getTGT(tgc);
         log.info("tgt={},tgc={}",tgt,tgc);
         if (StringUtils.isEmpty(tgt)){
             return false;

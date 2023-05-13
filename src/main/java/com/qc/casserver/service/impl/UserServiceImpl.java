@@ -22,6 +22,7 @@ import com.qc.casserver.service.*;
 import com.qc.casserver.utils.PWDMD5;
 
 import com.qc.casserver.utils.RandomName;
+import com.qc.casserver.utils.TGTUtil;
 import com.qc.casserver.utils.TicketUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -31,10 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.qc.casserver.utils.ParamsCalibration.checkSensitiveWords;
 
@@ -170,7 +168,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StringUtils.isEmpty(tgc)){
             throw new CustomException("出错了");
         }
-        String tgt = iRedisService.getTGC(tgc);
+        String tgt = iRedisService.getTGT(tgc);
         if (StringUtils.isEmpty(tgt)){
             throw new CustomException("需要认证");
         }
@@ -448,11 +446,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public R<UserResult> logout(String tgc) {
-        if (StringUtils.isEmpty(tgc)) {
+
+        String tgt = iRedisService.getTGT(tgc);
+        if (StringUtils.isEmpty(tgt)) {
             return R.error(Code.DEL_TOKEN,"登陆过期");
         }
+        String userIdByTGT = TicketUtil.getUserIdByTGT(tgt);
+        if (StringUtils.isEmpty(userIdByTGT)) {
+            return R.error(Code.DEL_TOKEN,"登陆过期");
+        }
+        Set<String> logout = iRedisService.getLogout(userIdByTGT);
+        for (String log:
+             logout) {
+            iRedisService.del(log);
+        }
+
+        iRedisService.delLogout(Long.valueOf(userIdByTGT));
         iRedisService.del(tgc);
-        return R.error(Code.DEL_TOKEN,"登陆过期");
+        return R.error(Code.DEL_TOKEN,"单点登出成功");
 
     }
 //
@@ -869,6 +880,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return R.success("修改成功");
         }
         return R.success("修改失败");
+    }
+
+    @Override
+    public R<String> getLogoutSize(String tgcInRequest) {
+        String tgt = iRedisService.getTGT(tgcInRequest);
+        if (StringUtils.isEmpty(tgt)){
+            return R.error("未登录");
+        }
+        String userIdByTGT = TicketUtil.getUserIdByTGT(tgt);
+        if (StringUtils.isEmpty(userIdByTGT)){
+            return R.error("未登录");
+        }
+
+
+        Long logoutSize = iRedisService.getLogoutSize(userIdByTGT);
+        return R.success(logoutSize.toString());
     }
 
 }

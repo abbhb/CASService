@@ -19,11 +19,17 @@ public class MyString {
     public final static String permission_key = pre_all+ "cas:permission";
 
 
-    public static Object pre_tgc = pre_all+  "tgc_tgt::";
+    public static String pre_tgc = pre_all+  "tgc_tgt::";
 
-    public static Object pre_access_token = pre_all+  "access_token::";
+    //专门建一个redis用来实现单点下线，将授权key全作为值存入redis
+    public static String pre_logout(Long userId){
+        return pre_all+ "logout::"+ userId;
+    }
 
-    public static Object pre_refresh_token = pre_all+  "refresh_token::";
+
+    public static String pre_access_token = pre_all+  "access_token::";
+
+    public static String pre_refresh_token = pre_all+  "refresh_token::";
 
 
     /**
