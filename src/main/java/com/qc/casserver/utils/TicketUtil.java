@@ -28,7 +28,7 @@ public class TicketUtil {
      * @return
      */
     public static String addNewTGT(String username,Long userId,Integer permission){
-        String message="TGC:"+username+"==="+ userId+"==="+permission;
+        String message="TGT:"+username+"==="+ userId+"==="+permission;
         return message;
     }
 
