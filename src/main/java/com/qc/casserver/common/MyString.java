@@ -12,7 +12,7 @@ public class MyString {
 
     public final static String pre_email_redis = pre_all+ "emailcode:";
 
-    public final static String pre_user_redis =pre_all+  "user:";
+    public final static String pre_user_redis =pre_all+  "user::";
 
     public final static String ST_PRE = pre_all+ "st:";
 
