@@ -197,16 +197,16 @@ public class InviteCodeServiceImpl extends ServiceImpl<InviteCodeMapper, InviteC
     @Transactional
     @Override
     public boolean useInviteCode(String inviteCode) {
-        LambdaQueryWrapper<InviteCode> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        LambdaQueryWrapper<InviteCode> eq = lambdaQueryWrapper.eq(InviteCode::getInviteCode, inviteCode);
-        InviteCode one = super.getOne(lambdaQueryWrapper);
+        LambdaQueryWrapper<InviteCode> lambdaQueryWrapper1 = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper1.eq(InviteCode::getInviteCode, inviteCode);
+        InviteCode one = super.getOne(lambdaQueryWrapper1);
         if (one==null){
             return false;
         }
         if (one.getPersistence()==1){
             LambdaUpdateWrapper<InviteCode> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
             lambdaUpdateWrapper.set(InviteCode::getUsageCount,one.getUsageCount()+1);
-            lambdaQueryWrapper.eq(InviteCode::getInviteCode,inviteCode);
+            lambdaUpdateWrapper.eq(InviteCode::getId,one.getId());
             super.update(lambdaUpdateWrapper);
         }else {
             this.removeById(one.getId());

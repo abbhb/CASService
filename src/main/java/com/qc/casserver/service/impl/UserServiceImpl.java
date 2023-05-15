@@ -1,6 +1,7 @@
 package com.qc.casserver.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -19,11 +20,8 @@ import com.qc.casserver.pojo.entity.Permission;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.pojo.vo.RegisterUser;
 import com.qc.casserver.service.*;
-import com.qc.casserver.utils.PWDMD5;
+import com.qc.casserver.utils.*;
 
-import com.qc.casserver.utils.RandomName;
-import com.qc.casserver.utils.TGTUtil;
-import com.qc.casserver.utils.TicketUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -41,6 +39,7 @@ import static com.qc.casserver.utils.ParamsCalibration.checkSensitiveWords;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
+
     private final IRedisService iRedisService;
 
     @Autowired
@@ -54,6 +53,77 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public UserServiceImpl(IRedisService iRedisService, CommonService commonService) {
         this.iRedisService = iRedisService;
         this.commonService = commonService;
+    }
+
+
+    @Transactional
+    @Override
+    public boolean removeById(Serializable id) {
+        User one = this.getById(id);
+        if (one==null){
+            throw new CustomException("异常");
+        }
+        //权限校验
+        User currentUser = ThreadLocalUtil.getCurrentUser();
+        if (currentUser==null){
+            throw new CustomException("无权限");
+        }
+        Permission permissionMyId = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(currentUser.getPermission()));
+        Permission permissionRemoveId = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
+        if (permissionMyId.getWeight()<=permissionRemoveId.getWeight()){
+            throw new CustomException("权限不足");
+        }
+
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.set(User::getDeleteTime,new Date().getTime());
+        lambdaUpdateWrapper.set(User::getIsDeleted,1);
+        lambdaUpdateWrapper.eq(User::getId,id);
+
+        return this.update(lambdaUpdateWrapper);
+    }
+
+    @Transactional
+    @Override
+    public boolean removeByMap(Map<String, Object> columnMap) {
+        throw new CustomException("暂时禁用此方法异常");
+    }
+
+    /**
+     * 删除肯定是登录过的用户
+     * @param queryWrapper 实体包装类 {@link com.baomidou.mybatisplus.core.conditions.query.QueryWrapper}
+     * @return
+     */
+    @Transactional
+    @Override
+    public boolean remove(Wrapper<User> queryWrapper) {
+        User one = this.getOne(queryWrapper);
+        if (one==null){
+            throw new CustomException("异常");
+        }
+        //权限校验
+        User currentUser = ThreadLocalUtil.getCurrentUser();
+        if (currentUser==null){
+            throw new CustomException("无权限");
+        }
+        Permission permissionMyId = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(currentUser.getPermission()));
+        Permission permissionRemoveId = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
+        if (permissionMyId.getWeight()<=permissionRemoveId.getWeight()){
+            throw new CustomException("权限不足");
+        }
+        LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.set(User::getDeleteTime,new Date().getTime());
+        lambdaUpdateWrapper.set(User::getIsDeleted,1);
+        lambdaUpdateWrapper.eq(User::getId,one.getId());
+        return this.update(lambdaUpdateWrapper);
+    }
+
+    @Transactional
+    @Override
+    public boolean removeByIds(Collection<? extends Serializable> idList) {
+        for (Serializable id : idList) {
+            this.removeById(id);
+        }
+        return true;
     }
 
     public User getManyUserById(Long id){
@@ -93,7 +163,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(User::getUsername,entity.getUsername());
         //会自动加上条件判断没有删除
-        long count = super.count(lambdaQueryWrapper);
+        long count = this.count(lambdaQueryWrapper);
         if (count> 0L){
             throw new CustomException("用户名已经存在");
         }
@@ -122,7 +192,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             queryWrapper.eq(User::getUsername,username);
         }
 
-        User one = super.getOne(queryWrapper);
+        User one = this.getOne(queryWrapper);
         if (one==null){
             throw new CustomException("用户名或密码错误");
         }
@@ -257,7 +327,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         lambdaQueryWrapper.like(StringUtils.isNotEmpty(name),User::getName,name);
         //添加排序条件
         lambdaQueryWrapper.orderByAsc(User::getCreateTime);//按照创建时间排序
-        super.page(pageInfo,lambdaQueryWrapper);
+        this.page(pageInfo,lambdaQueryWrapper);
         PageData<UserResult> pageData = new PageData<>();
         List<UserResult> results = new ArrayList<>();
         for (Object user : pageInfo.getRecords()) {
@@ -300,7 +370,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //        }
 //        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
 //        queryWrapper.eq(User::getEmail,email);
-//        User one = super.getOne(queryWrapper);
+//        User one = this.getOne(queryWrapper);
 //        if (one==null){
 //            return R.error("用户名或密码错误");
 //        }
@@ -367,7 +437,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user1 = new User();
         BeanUtils.copyProperties(user,user1);
         log.info("{}",user1);
-        boolean save = super.save(user1);
+        boolean save = this.save(user1);
         if (save){
             return R.success("创建成功");
         }
@@ -379,7 +449,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         user.setPermission(2);
         if (StringUtils.isEmpty(user.getName())){
-            user.setName(RandomName.getUUID());
+            user.setName("亲爱的用户请改名");
         }
         if (StringUtils.isEmpty(user.getSex())){
             user.setSex("未知");
@@ -432,11 +502,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         lambdaUpdateWrapper.set(User::getEmail,null);
         lambdaUpdateWrapper.eq(User::getEmail,user.getEmail());
-        super.update(lambdaUpdateWrapper);//对之前绑定过这个邮箱的号解绑
+        this.update(lambdaUpdateWrapper);//对之前绑定过这个邮箱的号解绑
         User user1 = new User();
         BeanUtils.copyProperties(user,user1);
         log.info("{}",user1);
-        boolean save = super.save(user1);
+        boolean save = this.save(user1);
         if (save){
             iRedisService.del(MyString.pre_email_redis+user.getEmail());
             return R.success("创建成功");
@@ -497,19 +567,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (userId==null){
             return R.error("无操作对象");
         }
-
-
-
-
         User myId = getById(userId);
         if (myId==null){
             //don't hava object
             throw new CustomException("没有对象");
         }
-
-
+        //权限校验
         Permission permissionMyId = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(myId.getPermission()));
-
         List<User> users = new ArrayList<>();
         boolean update = false;
         if (id.contains(",")){
@@ -533,7 +597,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 user.setStatus(Integer.valueOf(status));
                 users.add(user);
             }
-            update = super.updateBatchById(users);
+            update = this.updateBatchById(users);
         }else {
             User byId = getById(Long.valueOf(id));
             if (byId==null){
@@ -550,7 +614,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
             lambdaUpdateWrapper.set(User::getStatus,Integer.valueOf(status));
             lambdaUpdateWrapper.eq(User::getId,Long.valueOf(id));
-            update = super.update(lambdaUpdateWrapper);
+            update = this.update(lambdaUpdateWrapper);
         }
         if (update){
             return R.success("更改成功");
@@ -586,6 +650,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return R.error("禁止操作admin");
         }
 
+        User currentUser = ThreadLocalUtil.getCurrentUser();
+        if (currentUser==null){
+            throw new CustomException("无权限");
+        }
+        User one = this.getById(user.getId());
+        Permission permissionMyId = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(currentUser.getPermission()));
+        Permission permissionRemoveId = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
+        if (permissionMyId.getWeight()<=permissionRemoveId.getWeight()){
+            throw new CustomException("权限不足");
+        }
+
         LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         lambdaUpdateWrapper.eq(User::getId,user.getId());
         lambdaUpdateWrapper.set(User::getName,user.getName());
@@ -596,7 +671,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         lambdaUpdateWrapper.set(User::getStatus,user.getStatus());
         lambdaUpdateWrapper.set(User::getPhone,user.getPhone());
         lambdaUpdateWrapper.set(User::getAvatar,user.getAvatar());
-        boolean update = super.update(lambdaUpdateWrapper);
+        boolean update = this.update(lambdaUpdateWrapper);
         if (update){
             return R.successOnlyMsg("更新成功");
         }
@@ -633,7 +708,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         lambdaUpdateWrapper.set(User::getSex,user.getSex());
         lambdaUpdateWrapper.set(User::getPhone,user.getPhone());
         lambdaUpdateWrapper.set(User::getAvatar,user.getAvatar());
-        boolean update = super.update(lambdaUpdateWrapper);
+        boolean update = this.update(lambdaUpdateWrapper);
         if (update){
             return R.successOnlyMsg("更新成功");
         }
@@ -663,7 +738,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getId,Long.valueOf(id)).eq(User::getUsername,username);
-        User one = super.getOne(queryWrapper);
+        User one = this.getOne(queryWrapper);
         if (one==null){
             return R.error(Code.DEL_TOKEN,"环境异常,强制下线");
         }
@@ -683,7 +758,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setSalt(newSalt);
 //        employee.setUpdateUser(Long.valueOf(id));
         //操作数据库更新密码和盐
-        boolean update = super.update(user, lambdaUpdateWrapper);
+        boolean update = this.update(user, lambdaUpdateWrapper);
         if (update){
             return R.successOnlyMsg("修改成功");
         }
@@ -723,7 +798,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //        lambdaQueryWrapper.like(StringUtils.isNotEmpty(name),User::getName,name);
 //        //添加排序条件
 //        lambdaQueryWrapper.orderByAsc(User::getCreateTime);//按照创建时间排序
-//        super.page(pageInfo,lambdaQueryWrapper);
+//        this.page(pageInfo,lambdaQueryWrapper);
 //        PageData<UserResult> pageData = new PageData<>();
 //        List<UserResult> results = new ArrayList<>();
 //        for (Object user : pageInfo.getRecords()) {
@@ -763,16 +838,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 }
                 ids.add(Long.valueOf(s));
             }
-            super.removeByIds(ids);
+            this.removeByIds(ids);
         }else {
             if (Long.valueOf(id).equals(1L)){
                 throw new CustomException("admin不可删除");
             }
-            LambdaQueryWrapper<User> lambdaUpdateWrapper = new LambdaQueryWrapper<>();
-            lambdaUpdateWrapper.eq(User::getId,Long.valueOf(id));
-            super.remove(lambdaUpdateWrapper);
+            this.removeById(Long.valueOf(id));
         }
-
         return R.success("删除成功");
     }
 
@@ -780,7 +852,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public R<String> hasUserName(String username) {
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userLambdaQueryWrapper.eq(User::getUsername,username);
-        int count = super.count(userLambdaQueryWrapper);
+        int count = this.count(userLambdaQueryWrapper);
         if (count==0){
             return R.success("可用");
         }
@@ -819,12 +891,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaUpdateWrapper<User> lambdaUpdateWrappers = new LambdaUpdateWrapper<>();
         lambdaUpdateWrappers.set(User::getEmail,null);
         lambdaUpdateWrappers.eq(User::getEmail,newEmail);
-        super.update(lambdaUpdateWrappers);
+        this.update(lambdaUpdateWrappers);
 
         LambdaUpdateWrapper<User> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         lambdaUpdateWrapper.set(User::getEmail,newEmail);
         lambdaUpdateWrapper.eq(User::getId,userId);
-        boolean update = super.update(lambdaUpdateWrapper);
+        boolean update = this.update(lambdaUpdateWrapper);
         if (update){
             //删除验证码
             iRedisService.del(MyString.pre_email_redis+newEmail);
@@ -862,7 +934,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //校验邮箱是否存在
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(User::getEmail, registerUser.getEmail());
-        User one = super.getOne(lambdaQueryWrapper);
+        User one = this.getOne(lambdaQueryWrapper);
         if (one == null) {
             return R.error("邮箱不存在");
         }
@@ -873,7 +945,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         lambdaUpdateWrapper.set(User::getPassword,md5Encryption);
         lambdaUpdateWrapper.set(User::getSalt,salt);
         lambdaUpdateWrapper.eq(User::getId, one.getId());
-        boolean update = super.update(lambdaUpdateWrapper);
+        boolean update = this.update(lambdaUpdateWrapper);
         if (update) {
             //删除验证码
             iRedisService.del(MyString.pre_email_redis + registerUser.getEmail());

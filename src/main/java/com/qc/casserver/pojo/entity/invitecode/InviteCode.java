@@ -34,8 +34,9 @@ public class InviteCode implements Serializable {
     public static InviteCode randomOneInviteCode(Long userId,Integer persistence){
         InviteCode inviteCode1 = new InviteCode();
         String uuid = RandomName.getUUID();
-        int year = LocalDateTime.now().getYear();
-        inviteCode1.setInviteCode(year+uuid.substring(1,8));
+        String year = LocalDateTime.now().getYear()%1000+"";
+        String hour = LocalDateTime.now().getHour() + "";
+        inviteCode1.setInviteCode(year+hour+uuid.substring(1,3));
         inviteCode1.setCreateUser(userId);
         inviteCode1.setCreateTime(LocalDateTime.now());
         inviteCode1.setUsageCount(0);

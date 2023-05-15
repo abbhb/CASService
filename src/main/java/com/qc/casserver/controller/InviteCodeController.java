@@ -87,7 +87,7 @@ public class InviteCodeController {
     }
 
     @GetMapping("/listAll")
-    @PermissionCheck("10")
+    @PermissionCheck("1")
     @NeedLogin
     public R<PageData<InviteCodeResult>> listAllInviteCode(Integer pageNum, Integer pageSize, HttpServletRequest request){
         Long userId = TGTUtil.getUserIdByTGTInRequest(request, iRedisService);

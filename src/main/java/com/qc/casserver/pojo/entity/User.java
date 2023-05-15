@@ -12,6 +12,10 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+
+/**
+ * 逻辑删除和唯一索引冲突，所以重写了remove方法
+ */
 @Data
 @AllArgsConstructor//不加这个是没有有参构造的
 @NoArgsConstructor
@@ -61,5 +65,10 @@ public class User implements Serializable {
     private String email;
 
     private String avatar;
+
+    /**
+     * 只有当删除时设置为时间戳，其余时候为1L
+     */
+    private Long deleteTime = 1L;
 
 }
