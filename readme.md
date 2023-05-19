@@ -46,8 +46,19 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 4. 拿id匹配自己有无用户，然后返回自己持久化认证即完成认证了。
 
 #### 3-2:基于Oauth2.0的CAS接入
+>1. 只需判断在自己服务里是否为登录状态，没登录成功或者需要登录发送`GET请求`到`http://10.15.245.1:55554/cas/authorize` 即可
+>请求参数为
+>response_type=code[必须为code]\
+>state[可选]\
+>client_id[必填]\
+>redirect_uri[可选|必填]若未设置回调地址为必填\
+>登录成功会重定向到redirect_uri这个地址并携带code参数，如果传入了state，会原样返回
 
-暂无文档
+>2. 成功拿到code后通过/oauth2/accessToken接口获取Token [POST请求]|[详细看下方]
+>3. 获取到AccessToken后，通过/oauth2/me接口获取用户信息 [GET请求]|[详细看下方]
+
+
+
 
 
 
@@ -55,9 +66,10 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 
 
 #### 传统CAS接口
+
 | 地址                                        | 请求方式       | ```params/data```                                           | return        |
 | ------------------------------------------- |------------|-------------------------------------------------------------|---------------|
-| ```/v1/ticket```/                          | ```GET```  | ```st```:就是回调后地址里的ticket                                    | 下方```JSON1-1``` |
+| ```/v1/ticket```/                          | ```GET```  | ```ticket```:就是回调后地址里的ticket                                    | 下方```JSON1-1``` |
 
 ```JSON1-1```:
 
@@ -87,14 +99,14 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 
 
 #### OAuth2接口
-| 地址                                        | 请求方式       | ```params/data```                                           | return        |
-| ------------------------------------------- |------------|-------------------------------------------------------------|---------------|
-| ```/api2/oauth/accesstoken/```              | ```POST``` | ```accessToken```:拿token换当前用户数据**[注意大写请求参数名]**              | 下方```JSON2``` |
-| ```/api2/oauth```/                          | ```POST``` | ```st```:就是回调后地址里的ticket                                    | 下方```JSON1``` |
-| ```/api2/oauth/refreshtoken/``` | ```POST``` | ```refreshToken```:刷新令牌**[注意大写请求参数名]**                      | 下方```JSON3``` |
-| ```/api2/oauth/logoutToken/``` | ```POST``` | ```accessToken```:令牌 ```refreshToken```:刷新令牌**[注意大写请求参数名]** | 下方```JSON4``` |
+| 地址                      | 描述             | 请求方式   | ```params/data```                                     | return          |
+|-------------------------|----------------|--------|-------------------------------------------------------|-----------------|
+| `/oauth2/accessToken/`  | 用于通过授权码获取token | `POST` | `code:返回的code` `clientId:客户端Id`  `clientSecret:客户端秘钥` | 下方```JSON2-1``` |
+| `/oauth2/refreshToken/` | 通过刷新令牌刷新token  | `POST` | `refreshToken`:刷新令牌                                   | 下方```JSON2-2``` |
+| `/oauth2/me/`           | 通过token获取用户信息  | `GET`  | `accessToken`:令牌                                      | 下方```JSON2-3``` |
+| `/oauth2/logoutToken/`  | 单应用登出          | `POST` | `accessToken`:令牌 `refreshToken`:刷新令牌                  | 下方```JSON2-4``` |
 
-```JSON1```：
+```JSON2-1```：
 
 ```
 //说明：这个接口code只有1与其他的区分，只有1为成功
@@ -112,36 +124,8 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 }
 ```
 
-```JSON2```:
 
-```
-//code只有1为成功，会在data返回json用户基本数据
-{
-    "code": 1,
-    "msg": null,
-    "data": {
-        "id": "1",
-        "username": "admin",
-        "name": "admin",
-        "phone": "13986530157",
-        "sex": "男",
-        "studentId": "202115040212",
-        "status": 1,
-        "avatar": "http://10.15.245.153:9090/aistudio/3d991f92ed01467ca40da0936d64c439.jpg",
-        "createTime": "2023-04-19 13:42:09",
-        "updateTime": "2023-04-19 13:42:12",
-        "permission": 10,
-        "permissionName": "admin",
-        "email": null,
-        "service": null,
-        "tgc": null,
-        "st": null
-    },
-    "map": {}
-}
-```
-
-```JSON3```
+```JSON2-2```
 
 ```
 //注意：这个接口就不一样了
@@ -161,7 +145,35 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
     "map": {}
 }
 ```
-```JSON4```
+
+
+```JSON2-3```:
+
+```
+//code只有1为成功，会在data返回json用户基本数据
+{
+    "code": 1,
+    "msg": null,
+    "data": {
+        "id": "1",
+        "username": "admin",
+        "name": "admin",
+        "phone": "13986530157",
+        "sex": "男",
+        "studentId": "202115040212",
+        "status": 1,
+        "avatar": "http://10.15.245.153:9090/aistudio/3d991f92ed01467ca40da0936d64c439.jpg",
+        "createTime": "2023-04-19 13:42:09",
+        "updateTime": "2023-04-19 13:42:12",
+        "permission": 10,
+        "permissionName": "admin",
+        "email": null
+    },
+    "map": {}
+}
+```
+
+```JSON2-4```
 ```
 //这个接口用于对授权应用下线（不会对CAS下线,不是单点下线）
 为对单个接入oauth2.0应用下线
@@ -174,13 +186,15 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 }
 ```
 
-
+## 单点登出
+`跳转到http://10.15.245.1:55554/#/safeLogout`
 
 
 
 ! 内部环境里API请求地址为:
 
-http://192.168.12.122:55555/ [可能后续变更为10段，无所谓了，后端也不存在跨域问题]
+http://10.15.245.1:55555/ [可能后续变更为10段，无所谓了，后端也不存在跨域问题]
+```nginx转发```也可以使用http://10.15.245.1:55554/cas/ 
 
 
 -[ ] 接口限流(用户)
@@ -188,7 +202,7 @@ http://192.168.12.122:55555/ [可能后续变更为10段，无所谓了，后端
 -[ ] 接口限流(总限流)
 -[ ] 接口加密
 -[ ] 引导
--[ ] 单点登出 :方案，单独存一条，用tgt绑定多个Token类，单点登出尝试对所有token进行删除和对tgt，tgc进行删除
+-[x] 单点登出 :方案，单独存一条，用tgt绑定多个Token类，单点登出尝试对所有token进行删除和对tgt，tgc进行删除
 
 
 ``[前端项目:https://github.com/abbhb/CASService-Front]```

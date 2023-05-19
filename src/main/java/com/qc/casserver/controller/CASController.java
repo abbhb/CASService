@@ -23,13 +23,13 @@ public class CASController {
     @Autowired
     private AuthService authService;
     @GetMapping("/ticket")
-    public R<UserResult> serverTicketTOUserInfo(@RequestBody Ticket ticket){
+    public R<UserResult> serverTicketTOUserInfo(String ticket){
         if (ticket==null){
             return R.error("访问被拒绝");
         }
-        if (StringUtils.isEmpty(ticket.getSt())){
+        if (StringUtils.isEmpty(ticket)){
             return R.error("访问被拒绝");
         }
-        return authService.getUserInfoByST(ticket.getSt());
+        return authService.getUserInfoByST(ticket);
     }
 }
