@@ -200,6 +200,9 @@ public class OauthServiceImpl extends ServiceImpl<OauthMapper, Oauth> implements
             }else {
                 userResult.setRedirectUri(authorize.getRedirectUri());
             }
+            if (StringUtils.isNotEmpty(authorize.getState())){
+                userResult.setState(authorize.getState());
+            }
             //判断是否有权限
             if (oauth.getGrantType().equals(1)) {
                 //暂时只支持授权码模式
