@@ -4,14 +4,15 @@ import com.qc.casserver.common.R;
 import com.qc.casserver.common.annotation.NeedLogin;
 import com.qc.casserver.common.annotation.PermissionCheck;
 import com.qc.casserver.pojo.UserResult;
+import com.qc.casserver.pojo.entity.Authorize;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.Ticket;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.pojo.vo.RegisterUser;
 import com.qc.casserver.service.IRedisService;
+import com.qc.casserver.service.OauthService;
 import com.qc.casserver.service.UserService;
 
-import com.qc.casserver.utils.ParamsCalibration;
 import com.qc.casserver.utils.TGTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -31,9 +32,12 @@ public class UserController {
     private final UserService userService;
     private final IRedisService iRedisService;
 
-    public UserController(UserService userService, IRedisService iRedisService) {
+    private final OauthService oauthService;
+
+    public UserController(UserService userService, IRedisService iRedisService, OauthService oauthService) {
         this.userService = userService;
         this.iRedisService = iRedisService;
+        this.oauthService = oauthService;
     }
 
     /**
@@ -46,13 +50,17 @@ public class UserController {
      * @return
      */
     @PostMapping("/auth/login")
-    public R<UserResult> login(HttpServletResponse response, String service, @RequestBody Map<String, Object> user) {
+    public R<UserResult> login(HttpServletResponse response, @RequestBody Map<String, Object> user) {
         /**
          * 对密码进行加密传输
          */
         String username = (String) user.get("username");//用户名可以是用户名也可以用邮箱
         String password = (String) user.get("password");
-        log.info("{}", response.getStatus());
+        String responseType = (String) user.get("responseType");
+        //redirectUri：如果服务端定义了，就以服务端定义的为准
+        String redirectUri = (String) user.get("redirectUri");
+        String state = (String) user.get("state");
+        String clientId = (String) user.get("clientId");
         UserResult userResult = userService.login(username, password);
         if (StringUtils.isEmpty(userResult.getTgc())) {
             return R.error("好奇怪，出错了!");
@@ -62,23 +70,19 @@ public class UserController {
         cookie.setMaxAge(3 * 60 * 60); // 后面可以加入7天过期的功能
         cookie.setPath("/");
         response.addCookie(cookie);
-        //重定向交给前端吧
-        if (!ParamsCalibration.haveMust(userResult)) {
-            //必要信息不全，必须绑定
-            userResult.setSt(null);
-            return R.successOnlyObjectWithStatus(userResult, 308);
-        }
-        if (!StringUtils.isEmpty(service)) {
-            if (service.contains("#")) {
-                service = service.substring(0, service.lastIndexOf("#"));
-            }
-            userResult.setService(service);
-            return R.successOnlyObjectWithStatus(userResult, 302);
-        } else {
-            //正常登录平台
-            userResult.setSt(null);
-            return R.success(userResult);
-        }
+
+        /**
+         * 传入参数
+         */
+        Authorize authorize = new Authorize();
+        authorize.setResponseType(responseType);
+        authorize.setRedirectUri(redirectUri);
+        authorize.setState(state);
+        authorize.setClientId(clientId);
+        log.info("authorize = {}", authorize);
+
+        return oauthService.loginAggregationReturns(userResult, authorize);
+
 
     }
 
@@ -91,9 +95,9 @@ public class UserController {
      * @return
      */
     @NeedLogin
-    @GetMapping("/auth/loginbytgc")
-    public R<UserResult> loginbytgc(HttpServletRequest request, String service) {
-        log.info(service);
+    @PostMapping("/auth/loginbytgc")
+    public R<UserResult> loginbytgc(HttpServletRequest request,@RequestBody Authorize authorize) {
+        log.info(authorize.getRedirectUri());
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return R.error("好奇怪，出错了!");
@@ -112,32 +116,28 @@ public class UserController {
         if (StringUtils.isEmpty(userResult.getTgc())) {
             return R.error("好奇怪，出错了!");
         }
-        //重定向交给前端吧
-        if (!StringUtils.isEmpty(service)) {
-            userResult.setService(service);
-            return R.successOnlyObjectWithStatus(userResult, 302);
-        } else {
-            //正常登录平台
-            userResult.setSt(null);
-            return R.success(userResult);
-        }
+
+        return oauthService.loginAggregationReturns(userResult, authorize);
     }
 
     /**
-     * SG校验
-     *
-     * @param ticket
-     * @return 返回用户基本信息
+     * 此接口被替代
      */
-    @PostMapping("/auth/sg")
-    public R<UserResult> checkST(@RequestBody Ticket ticket) {
-        if (ticket == null) {
-            return R.error("访问被拒绝");
-        }
-        UserResult userResult = userService.checkST(ticket.getSt());
-        userResult.setSt(null);
-        return R.success(userResult);
-    }
+//    /**
+//     * ST校验
+//     *
+//     * @param ticket
+//     * @return 返回用户基本信息
+//     */
+//    @PostMapping("/auth/sg")
+//    public R<UserResult> checkST(@RequestBody Ticket ticket) {
+//        if (ticket == null) {
+//            return R.error("访问被拒绝");
+//        }
+//        UserResult userResult = userService.checkST(ticket.getSt());
+//        userResult.setSt(null);
+//        return R.success(userResult);
+//    }
 
     /**
      * 后期加入权限过滤器

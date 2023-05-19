@@ -15,6 +15,7 @@ import com.qc.casserver.common.MyString;
 import com.qc.casserver.common.R;
 import com.qc.casserver.mapper.UserMapper;
 import com.qc.casserver.pojo.UserResult;
+import com.qc.casserver.pojo.entity.Authorize;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.Permission;
 import com.qc.casserver.pojo.entity.User;
@@ -209,10 +210,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String tgt = TicketUtil.addNewTGT(one.getUsername(),one.getId(), one.getPermission());//作为value存于redis
         //返回给浏览器，写入cookie
         String tgc = TicketUtil.addNewTGC(String.valueOf(one.getId()),one.getUsername());
-        String st = TicketUtil.addNewST(one.getUsername(), one.getId(), one.getPermission());
         iRedisService.addTGCWithTGT(tgc, tgt,3*3600L);//token作为value，id是不允许更改的
-        //15过期的st,防止网络缓慢
-        iRedisService.setST(st,String.valueOf(one.getId()));
+
         UserResult userResult = new UserResult();
         userResult.setId(String.valueOf(one.getId()));
         userResult.setName(one.getName());
@@ -228,7 +227,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userResult.setPermissionName(permission.getName());
         userResult.setPhone(one.getPhone());
         userResult.setSex(one.getSex());
-        userResult.setSt(st);
 
         return userResult;
     }
@@ -252,11 +250,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new CustomException("账号已禁用!");
         }
         Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
-        String st = TicketUtil.addNewST(one.getUsername(), one.getId(), one.getPermission());
-        log.info(st);
         iRedisService.addTGCWithTGT(tgc, tgt,3*3600L);//token作为value，id是不允许更改的
         //15过期的st,防止网络缓慢
-        iRedisService.setST(st,String.valueOf(one.getId()));
         UserResult userResult = new UserResult();
         userResult.setId(String.valueOf(one.getId()));
         userResult.setName(one.getName());
@@ -272,45 +267,46 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userResult.setSex(one.getSex());
         userResult.setAvatar(one.getAvatar());
         userResult.setStatus(one.getStatus());
-        userResult.setSt(st);
         return userResult;
     }
 
-    @Override
-    public UserResult checkST(String st) {
-        log.info(st);
-        if (StringUtils.isEmpty(st)){
-            throw new CustomException("认证失败");
-        }
-        String serviceValue= iRedisService.getSTValue(st);
-        log.info("st={},stvalue={}",st,serviceValue);
-        if (StringUtils.isEmpty(serviceValue)){
-            throw new CustomException("认证失败");
-        }
-        String userId = TicketUtil.getUserId(st);
-        User one = getById(Long.valueOf(userId));
-        if (one==null){
-            throw new CustomException("业务异常;");
-        }
-        Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
 
-        UserResult userResult = new UserResult();
-        userResult.setId(String.valueOf(one.getId()));
-        userResult.setName(one.getName());
-        userResult.setEmail(one.getEmail());
-        userResult.setStudentId(String.valueOf(one.getStudentId()));
-        userResult.setUsername(one.getUsername());
-        userResult.setCreateTime(one.getCreateTime());
-        userResult.setUpdateTime(one.getUpdateTime());
-        userResult.setPermission(one.getPermission());
-        userResult.setPermissionName(permission.getName());
-        userResult.setPhone(one.getPhone());
-        userResult.setAvatar(one.getAvatar());
-        userResult.setStatus(one.getStatus());
-        userResult.setSex(one.getSex());
 
-        return userResult;
-    }
+//    @Override
+//    public UserResult checkST(String st) {
+//        log.info(st);
+//        if (StringUtils.isEmpty(st)){
+//            throw new CustomException("认证失败");
+//        }
+//        String serviceValue= iRedisService.getSTValue(st);
+//        log.info("st={},stvalue={}",st,serviceValue);
+//        if (StringUtils.isEmpty(serviceValue)){
+//            throw new CustomException("认证失败");
+//        }
+//        String userId = TicketUtil.getUserId(st);
+//        User one = getById(Long.valueOf(userId));
+//        if (one==null){
+//            throw new CustomException("业务异常;");
+//        }
+//        Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
+//
+//        UserResult userResult = new UserResult();
+//        userResult.setId(String.valueOf(one.getId()));
+//        userResult.setName(one.getName());
+//        userResult.setEmail(one.getEmail());
+//        userResult.setStudentId(String.valueOf(one.getStudentId()));
+//        userResult.setUsername(one.getUsername());
+//        userResult.setCreateTime(one.getCreateTime());
+//        userResult.setUpdateTime(one.getUpdateTime());
+//        userResult.setPermission(one.getPermission());
+//        userResult.setPermissionName(permission.getName());
+//        userResult.setPhone(one.getPhone());
+//        userResult.setAvatar(one.getAvatar());
+//        userResult.setStatus(one.getStatus());
+//        userResult.setSex(one.getSex());
+//
+//        return userResult;
+//    }
 
     @Override
     public R<PageData> getUserList(Integer pageNum, Integer pageSize, String name) {

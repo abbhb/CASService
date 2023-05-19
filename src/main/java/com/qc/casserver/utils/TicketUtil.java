@@ -1,6 +1,7 @@
 package com.qc.casserver.utils;
 
 import org.apache.tomcat.util.codec.binary.Base64;
+import org.springframework.util.Base64Utils;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -8,6 +9,7 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -80,6 +82,29 @@ public class TicketUtil {
         return permission;
     }
 
+    /**
+     * 基础方法
+     */
+
+    /**
+     * 用于转换成url安全的base64
+     * @param str
+     * @return
+     */
+    public static String encryStringBase64(String str){
+        return Base64Utils.encodeToUrlSafeString(str.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * 用于解密url安全的base64
+     * @param base64_str
+     * @return
+     */
+    public static String decryStringBase64(String base64_str){
+        byte[] str = Base64Utils.decodeFromUrlSafeString(base64_str);
+        return new String(str);
+    }
+
 
     /**
      * 生成ST
@@ -88,15 +113,16 @@ public class TicketUtil {
      * @param permission
      * @return
      */
-    public static String addNewST(String username,Long userId,Integer permission) {
-        String message="ST:"+username+"==="+ userId+"==="+permission;
-        String s = null;
+    public static String addNewTicket(String username, Long userId, Integer permission) {
+        String message="ST:"+username+"><"+ userId+"><"+permission;
+        String s1 = null;
         try {
-            s = RsaUtils.publicKeyEncrypt(message);
+            String s = RsaUtils.publicKeyEncrypt(message);
+            s1 = TicketUtil.encryStringBase64(s);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return s;
+        return s1;
     }
 
     /**
@@ -107,11 +133,12 @@ public class TicketUtil {
     public static String getUserId(String st){
         String s = null;
         try {
-            s = RsaUtils.privateKeyDecrypt(st);
+            String s1 = TicketUtil.decryStringBase64(st);
+            s = RsaUtils.privateKeyDecrypt(s1);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return s.split("===")[1];
+        return s.split("><")[1];
     }
 
     public static String AESdecode(String res) {

@@ -9,12 +9,18 @@ public interface IRedisService {
 
     Long getTGCTTL(String tgc);
 
-
     void setWithTime(String key,String value,Long time);
 
     void setWithTime(String key,Object value,Long time);
 
     void addAccessToken(String key,Object value,Long time);
+
+
+    void addAuthorizeCode(String authorizeCode,String userId);
+
+    String getAuthorizeCode(String authorizeCode);
+
+    void deleteAuthorizeCode(String authorizeCode);
 
     Set<String> getLogout(String userId);
 
@@ -45,7 +51,7 @@ public interface IRedisService {
     Object getValueObject(String key);
 
     String getSTValue(String key);
-    void setST(String st,String value);
+    void setTicket(String ticket, String value);
     void hashPut(String key,String hashKey,Object object);
 
     Object getHash(String key, String hashKey);

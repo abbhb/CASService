@@ -3,6 +3,7 @@ package com.qc.casserver.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qc.casserver.common.R;
 import com.qc.casserver.pojo.UserResult;
+import com.qc.casserver.pojo.entity.Authorize;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.pojo.vo.RegisterUser;
@@ -14,7 +15,8 @@ public interface UserService extends IService<User> {
 
     UserResult loginbytgc(String tgc);
 
-    UserResult checkST(String st);
+
+//    UserResult checkST(String st);
 
     R<PageData> getUserList(Integer pageNum, Integer pageSize, String name);
 

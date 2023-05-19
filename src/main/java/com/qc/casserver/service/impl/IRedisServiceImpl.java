@@ -65,6 +65,23 @@ public class IRedisServiceImpl implements IRedisService {
     }
 
     @Override
+    public void addAuthorizeCode(String authorizeCode,String userId) {
+        redisTemplate.opsForValue().set(MyString.pre_auth_code + authorizeCode, userId, 30L, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public String getAuthorizeCode(String authorizeCode) {
+        String userId = (String) redisTemplate.opsForValue().get(MyString.pre_auth_code + authorizeCode);
+        assert userId != null;
+        return userId;
+    }
+
+    @Override
+    public void deleteAuthorizeCode(String authorizeCode) {
+        redisTemplate.delete(MyString.pre_auth_code + authorizeCode);
+    }
+
+    @Override
     public Set<String> getLogout(String userId) {
         String s = MyString.pre_logout(Long.valueOf(userId));
         Set<String> members = redisTemplate.opsForSet().members(s);
@@ -220,8 +237,8 @@ public class IRedisServiceImpl implements IRedisService {
     }
 
     @Override
-    public void setST(String st, String value) {
-        redisTemplate.opsForValue().set(ST_PRE+st, value, 15L, TimeUnit.SECONDS);
+    public void setTicket(String ticket, String value) {
+        redisTemplate.opsForValue().set(ST_PRE+ticket, value, 15L, TimeUnit.SECONDS);
     }
 
 

@@ -41,10 +41,20 @@ public class UserResult implements Serializable {
     //后期可能拓展
     private String email;
 
-    private String service;
-
     private String tgc;
 
-    private String st;
+    //原st，用于传统cas认证
+    private String ticket;
+
+    //用于oauth2.0
+    private String code;
+
+    //状态码,原样返回，用于防止csrf攻击
+    private String state;
+
+    /**
+     * 作为cas和oauth的公共参数
+     */
+    private String redirectUri;
 
 }

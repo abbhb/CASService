@@ -14,6 +14,7 @@ public class MyString {
 
     public final static String pre_user_redis =pre_all+  "user::";
 
+    //ticket 即是st
     public final static String ST_PRE = pre_all+ "st:";
 
     public final static String permission_key = pre_all+ "cas:permission";
@@ -25,6 +26,8 @@ public class MyString {
     public static String pre_logout(Long userId){
         return pre_all+ "logout::"+ userId;
     }
+
+    public static String pre_auth_code = pre_all+  "auth_code::";
 
 
     public static String pre_access_token = pre_all+  "access_token::";

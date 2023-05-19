@@ -1,13 +1,14 @@
 package com.qc.casserver.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.qc.casserver.common.CustomException;
+import com.qc.casserver.common.MyString;
 import com.qc.casserver.common.R;
 import com.qc.casserver.pojo.UserResult;
-import com.qc.casserver.pojo.entity.RefreshToken;
-import com.qc.casserver.pojo.entity.Token;
-import com.qc.casserver.pojo.entity.User;
+import com.qc.casserver.pojo.entity.*;
 import com.qc.casserver.service.AuthService;
 import com.qc.casserver.service.IRedisService;
+import com.qc.casserver.service.OauthService;
 import com.qc.casserver.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -25,24 +26,50 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserService userService;
 
+    private final OauthService oauthService;
+
     @Autowired
-    public AuthServiceImpl(IRedisService iRedisService, UserService userService) {
+    public AuthServiceImpl(IRedisService iRedisService, UserService userService, OauthService oauthService) {
         this.iRedisService = iRedisService;
         this.userService = userService;
+        this.oauthService = oauthService;
     }
 
+
     @Override
-    public R<Token> addToken(String st) {
+    public R<Token> addToken(Authorize authorize) {
+        if (authorize==null){
+            throw new CustomException("认证失败");
+        }
+        if (StringUtils.isEmpty(authorize.getClientId())){
+            throw new CustomException("认证失败");
+        }
+        if (StringUtils.isEmpty(authorize.getCode())){
+            throw new CustomException("认证失败");
+        }
+        if (StringUtils.isEmpty(authorize.getClientSecret())){
+            throw new CustomException("认证失败");
+        }
+        LambdaQueryWrapper<Oauth> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(Oauth::getClientId,authorize.getClientId());
+        //校验clientSecret
+        Oauth oauth = oauthService.getOne(lambdaQueryWrapper);
+        if (oauth==null){
+            throw new CustomException("认证失败");
+        }
+        if (!oauth.getClientSecret().equals(authorize.getClientSecret())){
+            throw new CustomException("认证失败");
+        }
         UUID uuid = UUID.randomUUID();
         UUID uuid1 = UUID.randomUUID();
         String accessToken = uuid.toString();
         String refreshToken = uuid1.toString();
-        if (StringUtils.isEmpty(st)){
+        if (StringUtils.isEmpty(authorize.getCode())){
             throw new CustomException("认证失败");
         }
         //通过ST生成token
-        String userId= iRedisService.getSTValue(st);
-        log.info("st={},stvalue={}",st,userId);
+        String userId= iRedisService.getAuthorizeCode(authorize.getCode());
+        log.info("code={},stvalue={}",authorize.getCode(),userId);
         if (StringUtils.isEmpty(userId)){
             throw new CustomException("认证失败");
         }
@@ -62,6 +89,8 @@ public class AuthServiceImpl implements AuthService {
         token.setSign("DangDangDang");
         token.setAccessTokenExpiredTime(localDateTime3);
         token.setRefreshTokenExpiredTime(localDateTime12);
+        //删除code
+        iRedisService.deleteAuthorizeCode(authorize.getCode());
         return R.success(token);
     }
 
@@ -152,5 +181,41 @@ public class AuthServiceImpl implements AuthService {
         iRedisService.delAccessToken(token.getAccessToken());
         iRedisService.delRefreshToken(token.getRefreshToken());
         return R.success("下线成功");
+    }
+
+    @Override
+    public R<UserResult> getUserInfoByST(String st) {
+        if (StringUtils.isEmpty(st)){
+            throw new CustomException("认证失败");
+        }
+        String userId = (String) iRedisService.getSTValue(st);
+        if (StringUtils.isEmpty(userId)){
+            throw new CustomException("认证失败");
+        }
+        User byId = userService.getById(Long.valueOf(userId));
+        if (byId==null){
+            throw new CustomException("业务异常");
+        }
+        if(byId.getStatus() == 0){
+            throw new CustomException("账号已禁用!");
+        }
+        UserResult userResult = new UserResult();
+        userResult.setId(String.valueOf(byId.getId()));
+        userResult.setName(byId.getName());
+        userResult.setEmail(byId.getEmail());
+        userResult.setStudentId(String.valueOf(byId.getStudentId()));
+        userResult.setUsername(byId.getUsername());
+        userResult.setCreateTime(byId.getCreateTime());
+        userResult.setUpdateTime(byId.getUpdateTime());
+        userResult.setAvatar(byId.getAvatar());
+        userResult.setStatus(byId.getStatus());
+        userResult.setPermission(byId.getPermission());
+        userResult.setPhone(byId.getPhone());
+        Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(byId.getPermission()));
+        if (permission==null){
+            throw new CustomException("权限数据无法获取");
+        }
+        userResult.setPermissionName(permission.getName());
+        return R.success(userResult);
     }
 }
