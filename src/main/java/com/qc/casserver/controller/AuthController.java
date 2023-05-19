@@ -67,18 +67,15 @@ public class AuthController {
     /**
      * /oauth2.0/me	通过access_token参数获取用户信息	GET
      * access_token（必需）– 这必须是有效的访问令牌
-     * @param token
+     * @param accessToken
      * @return 响应将采用 JSON 格式，包含用户名、电子邮件和有关授权访问令牌的用户的其他用户信息。
      */
     @GetMapping("/me")
-    public R<UserResult> getUserByAccessToken(@RequestBody Token token){
-        if (token==null){
+    public R<UserResult> getUserByAccessToken(@RequestParam("accessToken") String accessToken){
+        if (StringUtils.isEmpty(accessToken)){
             return R.error("访问被拒绝");
         }
-        if (StringUtils.isEmpty(token.getAccessToken())){
-            return R.error("访问被拒绝");
-        }
-        return authService.getUserByAccessToken(token.getAccessToken());
+        return authService.getUserByAccessToken(accessToken);
     }
 
     /**
@@ -87,20 +84,24 @@ public class AuthController {
      * @return
      */
     @GetMapping("/authorize")
-    public R<String> authorize(@RequestParam("response_type") String responseType, @RequestParam("client_id") String clientId, @RequestParam(value = "redirect_uri",required = false)String redirectUri,HttpServletRequest request, HttpServletResponse response){
+    public R<String> authorize(@RequestParam("response_type") String responseType, @RequestParam("client_id") String clientId, @RequestParam(value = "redirect_uri",required = false)String redirectUri,@RequestParam(value = "state",required = false)String state,HttpServletRequest request, HttpServletResponse response){
         if (StringUtils.isEmpty(responseType)){
             return R.error("访问被拒绝");
         }
         if (StringUtils.isEmpty(clientId)){
             return R.error("访问被拒绝");
         }
-        if (!StringUtils.isEmpty(redirectUri)){
-            return R.error("不允许在此处重定向，请前往后台添加重定向url");
-        }
-        String ServerName = request.getServerName();//返回服务器的主机名
 
+        String ServerName = request.getServerName();//返回服务器的主机名
+        String red = "http://"+ServerName+":55554/?response_type="+responseType+"&client_id="+clientId;
+        if (StringUtils.isNotEmpty(state)){
+            red += "&state="+state;
+        }
+        if (StringUtils.isNotEmpty(redirectUri)){
+            red += "&redirect_uri="+redirectUri;
+        }
         try {
-            response.sendRedirect("http://"+ServerName+":55554/?response_type="+responseType+"&client_id="+clientId);
+            response.sendRedirect(red);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

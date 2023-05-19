@@ -64,9 +64,6 @@ public class AuthServiceImpl implements AuthService {
         UUID uuid1 = UUID.randomUUID();
         String accessToken = uuid.toString();
         String refreshToken = uuid1.toString();
-        if (StringUtils.isEmpty(authorize.getCode())){
-            throw new CustomException("认证失败");
-        }
         //通过ST生成token
         String userId= iRedisService.getAuthorizeCode(authorize.getCode());
         log.info("code={},stvalue={}",authorize.getCode(),userId);
