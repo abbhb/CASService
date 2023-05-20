@@ -10,6 +10,7 @@ import com.qc.casserver.service.AuthService;
 import com.qc.casserver.service.IRedisService;
 import com.qc.casserver.service.OauthService;
 import com.qc.casserver.service.UserService;
+import com.qc.casserver.utils.JWTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,7 +109,6 @@ public class AuthServiceImpl implements AuthService {
             throw new CustomException("账号已禁用!");
         }
         UserResult userResult = new UserResult();
-        userResult.setId(String.valueOf(byId.getId()));
         userResult.setName(byId.getName());
         userResult.setEmail(byId.getEmail());
         userResult.setStudentId(String.valueOf(byId.getStudentId()));
@@ -117,10 +117,10 @@ public class AuthServiceImpl implements AuthService {
         userResult.setUpdateTime(byId.getUpdateTime());
         userResult.setAvatar(byId.getAvatar());
         userResult.setStatus(byId.getStatus());
-        userResult.setPermission(byId.getPermission());
         userResult.setPermissionName(byId.getName());
         userResult.setPhone(byId.getPhone());
         userResult.setSex(byId.getSex());
+        userResult.setOpenid(byId.getOpenid());
         return R.success(userResult);
     }
 
@@ -181,7 +181,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public R<UserResult> getUserInfoByST(String st) {
+    public R<UserResult> getUserInfoByST(String st,String service) {
         if (StringUtils.isEmpty(st)){
             throw new CustomException("认证失败");
         }
@@ -195,6 +195,17 @@ public class AuthServiceImpl implements AuthService {
         }
         if(byId.getStatus() == 0){
             throw new CustomException("账号已禁用!");
+        }
+
+        if (StringUtils.isEmpty(st)){
+            return R.error("ticket不能为空");
+        }
+        //验证ticket是不是该服务的
+        try {
+            String tgt = JWTUtil.getTGT(st, service);
+        } catch (Exception e){
+            return R.error("ticket不能为空");
+
         }
         UserResult userResult = new UserResult();
         userResult.setId(String.valueOf(byId.getId()));

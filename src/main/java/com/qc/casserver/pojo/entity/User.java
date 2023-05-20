@@ -71,4 +71,9 @@ public class User implements Serializable {
      */
     private Long deleteTime = 1L;
 
+    /**
+     * 开放id(唯一)
+     */
+    private String openid;
+
 }

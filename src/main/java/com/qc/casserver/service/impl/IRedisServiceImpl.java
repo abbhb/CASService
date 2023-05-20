@@ -238,7 +238,7 @@ public class IRedisServiceImpl implements IRedisService {
 
     @Override
     public void setTicket(String ticket, String value) {
-        redisTemplate.opsForValue().set(ST_PRE+ticket, value, 15L, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(ST_PRE+ticket, value, 30L, TimeUnit.SECONDS);
     }
 
 

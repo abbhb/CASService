@@ -59,6 +59,7 @@ public class UserController {
         String responseType = (String) user.get("responseType");
         //redirectUri：如果服务端定义了，就以服务端定义的为准
         String redirectUri = (String) user.get("redirectUri");
+        String service = (String) user.get("service");
         String state = (String) user.get("state");
         String clientId = (String) user.get("clientId");
         UserResult userResult = userService.login(username, password);
@@ -66,11 +67,6 @@ public class UserController {
             return R.error("好奇怪，出错了!");
         }
         log.info("写入{}", userResult.getTgc());
-        Cookie cookie = new Cookie("tgc", userResult.getTgc());
-        cookie.setMaxAge(3 * 60 * 60); // 后面可以加入7天过期的功能
-        cookie.setPath("/");
-        response.addCookie(cookie);
-
         /**
          * 传入参数
          */
@@ -79,6 +75,7 @@ public class UserController {
         authorize.setRedirectUri(redirectUri);
         authorize.setState(state);
         authorize.setClientId(clientId);
+        authorize.setService(service);
         log.info("authorize = {}", authorize);
 
         return oauthService.loginAggregationReturns(userResult, authorize);
@@ -98,25 +95,15 @@ public class UserController {
     @PostMapping("/auth/loginbytgc")
     public R<UserResult> loginbytgc(HttpServletRequest request,@RequestBody Authorize authorize) {
         log.info(authorize.getRedirectUri());
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return R.error("好奇怪，出错了!");
-        }
-        String tgc = "";
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("tgc")) {
-                tgc = cookie.getValue();
-                break;
-            }
-        }
+        String tgc = request.getHeader("tgc");
         if (StringUtils.isEmpty(tgc)) {
             return R.error("好奇怪，出错了!");
         }
         UserResult userResult = userService.loginbytgc(tgc);
+        userResult.setTgc(tgc);
         if (StringUtils.isEmpty(userResult.getTgc())) {
             return R.error("好奇怪，出错了!");
         }
-
         return oauthService.loginAggregationReturns(userResult, authorize);
     }
 
@@ -360,10 +347,6 @@ public class UserController {
     @PostMapping("/logout")
     public R<UserResult> logout(HttpServletRequest request, HttpServletResponse response) {
         String tgcInRequest = TGTUtil.getTGCInRequest(request);
-        Cookie cookie = new Cookie("tgc", "");
-        cookie.setMaxAge(0); // 使其过期
-        cookie.setPath("/");
-        response.addCookie(cookie);
         return userService.logout(tgcInRequest);
     }
 

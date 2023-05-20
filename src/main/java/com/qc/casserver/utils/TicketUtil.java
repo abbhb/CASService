@@ -108,38 +108,13 @@ public class TicketUtil {
 
     /**
      * 生成ST
-     * @param username
-     * @param userId
-     * @param permission
      * @return
      */
-    public static String addNewTicket(String username, Long userId, Integer permission) {
-        String message="ST:"+username+"><"+ userId+"><"+permission;
-        String s1 = null;
-        try {
-            String s = RsaUtils.publicKeyEncrypt(message);
-            s1 = TicketUtil.encryStringBase64(s);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return s1;
+    public static String addNewTicket(String tgt, String service) {
+        String token = JWTUtil.getToken(tgt, service);
+        return token;
     }
 
-    /**
-     * 获取st对应的UserID
-     * @param st
-     * @return
-     */
-    public static String getUserId(String st){
-        String s = null;
-        try {
-            String s1 = TicketUtil.decryStringBase64(st);
-            s = RsaUtils.privateKeyDecrypt(s1);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return s.split("><")[1];
-    }
 
     public static String AESdecode(String res) {
         return keyGeneratorES(res, "AES", secret, 128, false);

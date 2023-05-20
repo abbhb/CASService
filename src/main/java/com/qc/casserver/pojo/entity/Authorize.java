@@ -40,4 +40,11 @@ public class Authorize implements Serializable {
         String code = RandomName.getUUID();
         return code;
     }
+
+    /**
+     * 用于传统CAS认证
+     * 接受参数
+     */
+    private String service;
+
 }

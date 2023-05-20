@@ -12,17 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 public class TGTUtil {
 
     public static Long getUserIdByTGTInRequest(HttpServletRequest request, IRedisService iRedisService){
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            throw new CustomException("好奇怪，出错了");
-        }
-        String tgc = "";
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("tgc")) {
-                tgc = cookie.getValue();
-                break;
-            }
-        }
+        String tgc = request.getHeader("tgc");
         if (StringUtils.isEmpty(tgc)){
             throw new CustomException("出错了");
         }
@@ -35,17 +25,8 @@ public class TGTUtil {
     }
 
     public static String getTGCInRequest(HttpServletRequest request){
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            throw new CustomException("好奇怪，出错了");
-        }
-        String tgc = "";
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("tgc")) {
-                tgc = cookie.getValue();
-                break;
-            }
-        }
+        String tgc = request.getHeader("tgc");
+
         return tgc;
     }
 }

@@ -69,32 +69,14 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
 
 | 地址                                        | 请求方式       | ```params/data```                                           | return        |
 | ------------------------------------------- |------------|-------------------------------------------------------------|---------------|
-| ```/v1/ticket```/                          | ```GET```  | ```ticket```:就是回调后地址里的ticket                                    | 下方```JSON1-1``` |
+| ```/v1/ticket```/                          | ```GET```  | ```ticket```:就是回调后地址里的ticket                                    | 下方```String1-1``` |
 
-```JSON1-1```:
+```String1-1```:
 
 ```
-//code只有1为成功，会在data返回json用户基本数据
-{
-    "code": 1,
-    "msg": null,
-    "data": {
-        "id": "1",
-        "username": "admin",
-        "name": "admin",
-        "phone": "13986530157",
-        "sex": "男",
-        "studentId": "202115040212",
-        "status": 1,
-        "avatar": "3d991f92ed01467ca40da0936d64c439.jpg",
-        "createTime": "2023-04-19 13:42:09",
-        "updateTime": "2023-04-19 13:42:12",
-        "permission": 10,
-        "permissionName": "admin",
-        "email": "1057117849@qq.com",
-    },
-    "map": {}
-}
+成功返回字符串
+yesusername
+失败返回no
 ```
 
 
@@ -155,7 +137,7 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
     "code": 1,
     "msg": null,
     "data": {
-        "id": "1",
+        "openid": "(唯一openid)",
         "username": "admin",
         "name": "admin",
         "phone": "13986530157",
@@ -165,7 +147,6 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
         "avatar": "http://10.15.245.153:9090/aistudio/3d991f92ed01467ca40da0936d64c439.jpg",
         "createTime": "2023-04-19 13:42:09",
         "updateTime": "2023-04-19 13:42:12",
-        "permission": 10,
         "permissionName": "admin",
         "email": null
     },

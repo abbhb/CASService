@@ -164,10 +164,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(User::getUsername,entity.getUsername());
         //会自动加上条件判断没有删除
-        long count = this.count(lambdaQueryWrapper);
+        long count = this.count(lambdaQueryWrapper);//此处不包括逻辑删除的
         if (count> 0L){
             throw new CustomException("用户名已经存在");
         }
+        entity.setOpenid(RandomName.getUUID());
         return super.save(entity);
     }
 

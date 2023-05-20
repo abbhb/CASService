@@ -36,6 +36,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
     public R<String> customExceptionHandler(CustomException e) {
+        if (e.getCode() != null){
+            return R.error(e.getCode(),e.getMessage());
+        }
         return R.error(e.getMessage());
     }
 

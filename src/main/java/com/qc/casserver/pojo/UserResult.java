@@ -57,4 +57,7 @@ public class UserResult implements Serializable {
      */
     private String redirectUri;
 
+    private String openid;
+
+
 }

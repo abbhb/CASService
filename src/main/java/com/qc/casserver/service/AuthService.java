@@ -21,5 +21,5 @@ public interface AuthService {
      * @param st
      * @return
      */
-    R<UserResult> getUserInfoByST(String st);
+    R<UserResult> getUserInfoByST(String st,String service);
 }
