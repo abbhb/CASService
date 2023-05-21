@@ -117,7 +117,11 @@ public class AuthServiceImpl implements AuthService {
         userResult.setUpdateTime(byId.getUpdateTime());
         userResult.setAvatar(byId.getAvatar());
         userResult.setStatus(byId.getStatus());
-        userResult.setPermissionName(byId.getName());
+        Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(byId.getPermission()));
+        if (permission==null){
+            throw new CustomException("业务异常");
+        }
+        userResult.setPermissionName(permission.getName());
         userResult.setPhone(byId.getPhone());
         userResult.setSex(byId.getSex());
         userResult.setOpenid(byId.getOpenid());

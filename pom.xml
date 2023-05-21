@@ -104,6 +104,13 @@
             <version>2.0.235-1</version>
         </dependency>
 
+        <!--scim-->
+        <dependency>
+            <groupId>com.bettercloud</groupId>
+            <artifactId>spring-boot-starter-scim2</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

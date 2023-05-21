@@ -46,3 +46,8 @@ minio:
   accessKey: N2T6ZfARSupeUYbn
   secretKey: nqcG5pG9Qc104lHrWgVZCYrc2JZSyS0v
   bucketName: aistudio
+
+# ====================== ↓↓↓↓↓↓ scim文件服务器 ↓↓↓↓↓↓ ======================
+scim2:
+  baseUrl: http://10.15.245.1:55555/
+
