@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 /**
  * 原始CAS认证接口
  * CAS1.0
@@ -22,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin("*")
 @Slf4j
 @Controller//@ResponseBody+@Controller
-@RequestMapping("/v1")
+@RequestMapping("/cas-v1")
 public class CASController {
     @Autowired
     private AuthService authService;
@@ -41,8 +44,12 @@ public class CASController {
 
         R<UserResult> userInfoByST = authService.getUserInfoByST(ticket,service);
         if (userInfoByST.getCode().equals(1)){
-            return "yes"+userInfoByST.getData().getUsername();
+            return "yes\n"+userInfoByST.getData().getUsername();
         }
         return "no";
+    }
+    @GetMapping("/login")
+    public void casLogin(HttpServletResponse response, String service) throws IOException {
+        response.sendRedirect(service);
     }
 }
