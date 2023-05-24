@@ -104,13 +104,17 @@
             <version>2.0.235-1</version>
         </dependency>
 
-        <!--scim-->
-        <dependency>
-            <groupId>com.bettercloud</groupId>
-            <artifactId>spring-boot-starter-scim2</artifactId>
-            <version>1.0.0</version>
-        </dependency>
+<!--        &lt;!&ndash;scim&ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>com.bettercloud</groupId>-->
+<!--            <artifactId>spring-boot-starter-scim2</artifactId>-->
+<!--            <version>1.0.0</version>-->
+<!--        </dependency>-->
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

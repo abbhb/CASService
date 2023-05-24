@@ -75,7 +75,6 @@ public class UserController {
         authorize.setRedirectUri(redirectUri);
         authorize.setState(state);
         authorize.setClientId(clientId);
-        authorize.setService(service);
         log.info("authorize = {}", authorize);
 
         return oauthService.loginAggregationReturns(userResult, authorize);

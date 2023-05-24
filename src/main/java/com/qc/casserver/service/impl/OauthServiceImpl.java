@@ -170,7 +170,7 @@ public class OauthServiceImpl extends ServiceImpl<OauthMapper, Oauth> implements
         }
         if (StringUtils.isNotEmpty(authorize.getRedirectUri())&&StringUtils.isEmpty(authorize.getResponseType())&&StringUtils.isEmpty(authorize.getCode())) {
             //传统CAS登录
-            String ticket = TicketUtil.addNewTicket(userResult.getTgc(),authorize.getService());
+            String ticket = TicketUtil.addNewTicket(userResult.getTgc(),authorize.getRedirectUri());
             //15过期的st,防止网络缓慢
             iRedisService.setTicket(ticket,userResult.getId());
             if (authorize.getRedirectUri().contains("#")) {

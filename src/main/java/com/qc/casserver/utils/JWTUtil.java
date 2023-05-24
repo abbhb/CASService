@@ -9,7 +9,10 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.util.Base64Util;
 import org.springframework.stereotype.Component;
+
+import java.util.Base64;
 
 @Component
 @Slf4j
@@ -23,6 +26,10 @@ public class JWTUtil {
         String st = null;
         try {//60L *
 //            Date expiresAt = new Date(System.currentTimeMillis()+ 1L*60L * 1000L);//token 60分钟内必须刷新，后期加个刷新令牌，刷新令牌放redis里
+            //转换成base64
+            service = Base64Util.encode(service);
+            log.info("11111{}",service);
+
             st = JWT.create().withIssuer(service).withClaim("tgt", tgt)
                     // 使用了HMAC256加密算法。
                     // mysecret是用来加密数字签名的密钥。
@@ -33,7 +40,8 @@ public class JWTUtil {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        return st;
+        String s = Base64.getEncoder().encodeToString(st.getBytes());
+        return s;
     }
 
 
@@ -58,16 +66,21 @@ public class JWTUtil {
      * @return 解密后的DecodedJWT对象，可以读取token中的数据。
      */
     public static DecodedJWT deToken(String token,String service) {
+        byte[] decode = Base64.getDecoder().decode(token);
+        token = new String(decode);
         DecodedJWT jwt = null;
 
         // 使用了HMAC256加密算法。
         // mysecret是用来加密数字签名的密钥。
-        JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret_key)).withIssuer(service).build();// Reusable
-        // verifier
-        // instance
-        jwt = verifier.verify(token);
+        //转换成base64
+        service = Base64Util.encode(service);
+        log.info("22222-{}",service);
 
-        return jwt;
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(secret_key)).withIssuer(service).build().verify(token);// Reusable
+// verifier
+        // instance
+
+        return decodedJWT;
     }
 
 }

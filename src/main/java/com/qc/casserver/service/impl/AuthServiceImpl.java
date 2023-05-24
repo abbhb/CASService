@@ -187,28 +187,38 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public R<UserResult> getUserInfoByST(String st,String service) {
         if (StringUtils.isEmpty(st)){
-            throw new CustomException("认证失败");
+            log.info("122");
+
+            return null;
         }
         String userId = (String) iRedisService.getSTValue(st);
         if (StringUtils.isEmpty(userId)){
-            throw new CustomException("认证失败");
+            log.info("17");
+            return null;
         }
         User byId = userService.getById(Long.valueOf(userId));
         if (byId==null){
-            throw new CustomException("业务异常");
+            log.info("15");
+
+            return null;
         }
-        if(byId.getStatus() == 0){
-            throw new CustomException("账号已禁用!");
+        if(byId.getStatus().equals(0)){
+            log.info("13");
+
+            return null;
         }
 
         if (StringUtils.isEmpty(st)){
-            return R.error("ticket不能为空");
+            log.info("12");
+            return null;
         }
         //验证ticket是不是该服务的
         try {
             String tgt = JWTUtil.getTGT(st, service);
         } catch (Exception e){
-            return R.error("ticket不能为空");
+            e.printStackTrace();
+            log.error(e.getMessage());
+            return null;
 
         }
         UserResult userResult = new UserResult();
@@ -225,9 +235,13 @@ public class AuthServiceImpl implements AuthService {
         userResult.setPhone(byId.getPhone());
         Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(byId.getPermission()));
         if (permission==null){
-            throw new CustomException("权限数据无法获取");
+            log.info("112");
+
+            return null;
         }
         userResult.setPermissionName(permission.getName());
+        log.info("121231");
+
         return R.success(userResult);
     }
 }
