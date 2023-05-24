@@ -60,8 +60,8 @@ ticket-granting cookie：授权的票据证明，由```CAS Server```通过```set
      > redirect_uri[可选|必填]若未设置回调地址为必填\
      > 登录成功会重定向到redirect_uri这个地址并携带code参数，如果传入了state，会原样返回
 
-> 2. 成功拿到code后通过/oauth2/accessToken接口获取Token [POST请求]|[详细看下方]
->3. 获取到AccessToken后，通过/oauth2/me接口获取用户信息 [GET请求]|[详细看下方]
+> 2. 成功拿到code后通过/oauth/accessToken接口获取Token [POST请求]|[详细看下方]
+>3. 获取到AccessToken后，通过/oauth/me接口获取用户信息 [GET请求]|[详细看下方]
 
 ### 4.API文档
 
@@ -84,10 +84,10 @@ yesusername
 
 | 地址                      | 描述             | 请求方式   | ```params/data```                                     | return          |
 |-------------------------|----------------|--------|-------------------------------------------------------|-----------------|
-| `/oauth2/accessToken/`  | 用于通过授权码获取token | `POST` | `code:返回的code` `clientId:客户端Id`  `clientSecret:客户端秘钥` | 下方```JSON2-1``` |
-| `/oauth2/refreshToken/` | 通过刷新令牌刷新token  | `POST` | `refreshToken`:刷新令牌                                   | 下方```JSON2-2``` |
-| `/oauth2/me/`           | 通过token获取用户信息  | `GET`  | `accessToken`:令牌                                      | 下方```JSON2-3``` |
-| `/oauth2/logoutToken/`  | 单应用登出          | `POST` | `accessToken`:令牌 `refreshToken`:刷新令牌                  | 下方```JSON2-4``` |
+| `/oauth/accessToken/`  | 用于通过授权码获取token | `POST` | `code:返回的code` `clientId:客户端Id`  `clientSecret:客户端秘钥` | 下方```JSON2-1``` |
+| `/oauth/refreshToken/` | 通过刷新令牌刷新token  | `POST` | `refreshToken`:刷新令牌                                   | 下方```JSON2-2``` |
+| `/oauth/me/`           | 通过token获取用户信息  | `GET`  | `accessToken`:令牌                                      | 下方```JSON2-3``` |
+| `/oauth/logoutToken/`  | 单应用登出          | `POST` | `accessToken`:令牌 `refreshToken`:刷新令牌                  | 下方```JSON2-4``` |
 
 ```JSON2-1```：
 

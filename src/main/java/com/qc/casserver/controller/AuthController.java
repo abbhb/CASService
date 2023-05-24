@@ -25,7 +25,7 @@ import java.io.IOException;
 @CrossOrigin("*")
 @Slf4j
 @RestController//@ResponseBody+@Controller
-@RequestMapping("/oauth2")
+@RequestMapping("/oauth")
 public class AuthController {
     private final AuthService authService;
 
@@ -38,7 +38,7 @@ public class AuthController {
     }
 
     /**
-     * /oauth2.0/accessToken,/oauth2.0/token	获取accessToken	POST
+     * /oauth/accessToken,/oauth/token	获取accessToken	POST
      * grant_type（必填）– 必须为“authorization_code”
      * 代码（必需）– 从授权服务器返回的代码(code)
      * client_id（必需）– 客户端 ID
@@ -65,7 +65,7 @@ public class AuthController {
     }
 
     /**
-     * /oauth2.0/me	通过access_token参数获取用户信息	GET
+     * /oauth/me	通过access_token参数获取用户信息	GET
      * access_token（必需）– 这必须是有效的访问令牌
      * @param accessToken
      * @return 响应将采用 JSON 格式，包含用户名、电子邮件和有关授权访问令牌的用户的其他用户信息。
@@ -79,8 +79,8 @@ public class AuthController {
     }
 
     /**
-     * /oauth2.0/authorize	获取authCode或者token	GET
-     * /oauth2.0/authorize	response_type=code&client_id=ID&redirect_uri=CALLBACK	会重定向到redirect_uri这个地址并携带code参数
+     * /oauth/authorize	获取authCode或者token	GET
+     * /oauth/authorize	response_type=code&client_id=ID&redirect_uri=CALLBACK	会重定向到redirect_uri这个地址并携带code参数
      * @return
      */
     @GetMapping("/authorize")
