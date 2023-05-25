@@ -1,5 +1,7 @@
 # CAS-认证服务
 
+## 此服务所有接口restful风格,驼峰交互
+
 ### 1.介绍
 
 - 一处登录，全服务认证
@@ -82,12 +84,12 @@ yesusername
 
 #### OAuth2接口
 
-| 地址                      | 描述             | 请求方式   | ```params/data```                                     | return          |
-|-------------------------|----------------|--------|-------------------------------------------------------|-----------------|
-| `/oauth/accessToken/`  | 用于通过授权码获取token | `POST` | `code:返回的code` `clientId:客户端Id`  `clientSecret:客户端秘钥` | 下方```JSON2-1``` |
-| `/oauth/refreshToken/` | 通过刷新令牌刷新token  | `POST` | `refreshToken`:刷新令牌                                   | 下方```JSON2-2``` |
-| `/oauth/me/`           | 通过token获取用户信息  | `GET`  | `accessToken`:令牌                                      | 下方```JSON2-3``` |
-| `/oauth/logoutToken/`  | 单应用登出          | `POST` | `accessToken`:令牌 `refreshToken`:刷新令牌                  | 下方```JSON2-4``` |
+| 地址                      | 描述             | 请求方式   | ```params/data```                                                        | return          |
+|-------------------------|----------------|--------|--------------------------------------------------------------------------|-----------------|
+| `/oauth/access_token/`  | 用于通过授权码获取token | `POST` | `code:返回的code` `client_id:客户端Id`  `client_secret:客户端秘钥` `grant_type:必须为authorization_code` | 下方```JSON2-1``` |
+| `/oauth/refresh_token/` | 通过刷新令牌刷新token  | `POST` | `refresh_token`:刷新令牌                                                     | 下方```JSON2-2``` |
+| `/oauth/me/`            | 通过token获取用户信息  | `GET`  | `access_token`:令牌                                                        | 下方```JSON2-3``` |
+| `/oauth/logout_token/`  | 单应用登出          | `POST` | `access_token`:令牌 `refresh_token`:刷新令牌                                   | 下方```JSON2-4``` |
 
 ```JSON2-1```：
 
@@ -97,10 +99,10 @@ yesusername
     "code": 1,
     "msg": null,
     "data": {
-        "accessToken": "5220d91b-1ccc-4a3c-bece-6123ad0a20bd",
-        "refreshToken": "8eccf5cf-db5c-4f8a-bc93-513603df7c06",
-        "accessTokenExpiredTime": "2023-04-23 00:12:22",
-        "refreshTokenExpiredTime": "2023-04-23 09:12:22",
+        "access_token": "5220d91b-1ccc-4a3c-bece-6123ad0a20bd",
+        "refresh_token": "8eccf5cf-db5c-4f8a-bc93-513603df7c06",
+        "access_tokenExpiredTime": "2023-04-23 00:12:22",
+        "refresh_tokenExpiredTime": "2023-04-23 09:12:22",
         "sign": "DangDangDang"
     },
     "map": {}
@@ -118,10 +120,10 @@ yesusername
     "code": 1,
     "msg": null,
     "data": {
-        "accessToken": "5220d91b-1ccc-4a3c-bece-6123ad0a20bd",
-        "refreshToken": "8eccf5cf-db5c-4f8a-bc93-513603df7c06",
-        "accessTokenExpiredTime": "2023-04-23 00:17:58",
-        "refreshTokenExpiredTime": "2023-04-23 00:12:22",
+        "access_token": "5220d91b-1ccc-4a3c-bece-6123ad0a20bd",
+        "refresh_token": "8eccf5cf-db5c-4f8a-bc93-513603df7c06",
+        "access_tokenExpiredTime": "2023-04-23 00:17:58",
+        "refresh_tokenExpiredTime": "2023-04-23 00:12:22",
         "sign": "DangDangDang"
     },
     "map": {}

@@ -1,6 +1,5 @@
 package com.qc.casserver.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qc.casserver.common.R;
 import com.qc.casserver.common.annotation.NeedLogin;
 import com.qc.casserver.common.annotation.PermissionCheck;
@@ -47,19 +46,22 @@ public class AuthController {
      * @param authorize
      * @return
      */
-    @PostMapping("/accessToken")
+    @PostMapping("/access_token")
     public R<Token> authorizeCodeTOAccessToken(@RequestBody Authorize authorize){
         if (authorize==null){
-            return R.error("访问被拒绝");
+            return R.error("访问被拒绝:null");
         }
         if (StringUtils.isEmpty(authorize.getCode())){
-            return R.error("访问被拒绝");
+            return R.error("访问被拒绝:Code");
         }
         if (StringUtils.isEmpty(authorize.getClientId())){
-            return R.error("访问被拒绝");
+            return R.error("访问被拒绝:cilentId");
+        }
+        if (!authorize.getGrantType().equals("authorization_code")){
+            return R.error("访问被拒绝:grantType");
         }
         if (StringUtils.isEmpty(authorize.getClientSecret())){
-            return R.error("访问被拒绝");
+            return R.error("访问被拒绝:clientSecret");
         }
         return authService.addToken(authorize);
     }
@@ -71,7 +73,7 @@ public class AuthController {
      * @return 响应将采用 JSON 格式，包含用户名、电子邮件和有关授权访问令牌的用户的其他用户信息。
      */
     @GetMapping("/me")
-    public R<UserResult> getUserByAccessToken(@RequestParam("accessToken") String accessToken){
+    public R<UserResult> getUserByAccessToken(@RequestParam("access_token") String accessToken){
         if (StringUtils.isEmpty(accessToken)){
             return R.error("访问被拒绝");
         }
@@ -108,7 +110,7 @@ public class AuthController {
         return null;
     }
 
-    @PostMapping("/refreshToken")
+    @PostMapping("/refresh_token")
     public R<Token> refreshToken(@RequestBody Token token){
         if (token==null){
             return R.error("访问被拒绝");
@@ -119,7 +121,7 @@ public class AuthController {
         return authService.refreshToken(token.getRefreshToken());
     }
 
-    @PostMapping("/logoutToken")
+    @PostMapping("/logout_token")
     public R<String> logoutToken(@RequestBody Token token){
         if (token==null){
             return R.error("访问被拒绝");
@@ -153,7 +155,7 @@ public class AuthController {
     @GetMapping("/list")
     @PermissionCheck("10")
     @NeedLogin
-    public R<PageData<Oauth>> listOauth(Integer pageNum, Integer pageSize){
+    public R<PageData<Oauth>> listOauth(@RequestParam("page_num") Integer pageNum, @RequestParam("page_size") Integer pageSize){
         if (pageNum==null||pageSize==null){
             return R.error("查询失败");
         }

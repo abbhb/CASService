@@ -81,7 +81,7 @@ public class InviteCodeController {
 
     @GetMapping("/listSelf")
     @NeedLogin
-    public R<PageData<InviteCodeResult>> listMyInviteCode(Integer pageNum, Integer pageSize, HttpServletRequest request){
+    public R<PageData<InviteCodeResult>> listMyInviteCode(@RequestParam("page_num")Integer pageNum,@RequestParam("page_size") Integer pageSize, HttpServletRequest request){
         Long userId = TGTUtil.getUserIdByTGTInRequest(request, iRedisService);
         return inviteCodeService.listMyInviteCode(pageNum,pageSize,userId);
     }
@@ -89,7 +89,7 @@ public class InviteCodeController {
     @GetMapping("/listAll")
     @PermissionCheck("1")
     @NeedLogin
-    public R<PageData<InviteCodeResult>> listAllInviteCode(Integer pageNum, Integer pageSize, HttpServletRequest request){
+    public R<PageData<InviteCodeResult>> listAllInviteCode(@RequestParam("page_num") Integer pageNum, @RequestParam("page_size") Integer pageSize, HttpServletRequest request){
         Long userId = TGTUtil.getUserIdByTGTInRequest(request, iRedisService);
         return inviteCodeService.listAllInviteCode(pageNum,pageSize,userId);
     }

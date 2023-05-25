@@ -56,12 +56,12 @@ public class UserController {
          */
         String username = (String) user.get("username");//用户名可以是用户名也可以用邮箱
         String password = (String) user.get("password");
-        String responseType = (String) user.get("responseType");
-        //redirectUri：如果服务端定义了，就以服务端定义的为准
-        String redirectUri = (String) user.get("redirectUri");
+        String response_type = (String) user.get("response_type");
+        //redirect_uri：如果服务端定义了，就以服务端定义的为准
+        String redirect_uri = (String) user.get("redirect_uri");
         String service = (String) user.get("service");
         String state = (String) user.get("state");
-        String clientId = (String) user.get("clientId");
+        String client_id = (String) user.get("client_id");
         UserResult userResult = userService.login(username, password);
         if (StringUtils.isEmpty(userResult.getTgc())) {
             return R.error("好奇怪，出错了!");
@@ -71,10 +71,10 @@ public class UserController {
          * 传入参数
          */
         Authorize authorize = new Authorize();
-        authorize.setResponseType(responseType);
-        authorize.setRedirectUri(redirectUri);
+        authorize.setResponseType(response_type);
+        authorize.setRedirectUri(redirect_uri);
         authorize.setState(state);
-        authorize.setClientId(clientId);
+        authorize.setClientId(client_id);
         log.info("authorize = {}", authorize);
 
         return oauthService.loginAggregationReturns(userResult, authorize);
@@ -136,7 +136,7 @@ public class UserController {
     @NeedLogin
     @PermissionCheck("1")
     @GetMapping("/get")
-    public R<PageData> getUserList(Integer pageNum, Integer pageSize, String name) {
+    public R<PageData> getUserList(@RequestParam("page_num") Integer pageNum, @RequestParam("page_size") Integer pageSize, String name) {
         log.info("pageNum = {},pageSize = {},name = {}", pageNum, pageSize, name);
         return userService.getUserList(pageNum, pageSize, name);
     }
@@ -289,10 +289,10 @@ public class UserController {
     public R<String> emailWithUser(@RequestBody Map<String, Object> email, HttpServletRequest request) {
         Long userId = TGTUtil.getUserIdByTGTInRequest(request, iRedisService);
         System.out.println("email = " + email);
-        String originEmail = (String) email.get("originEmail");
-        String originCode = (String) email.get("originCode");
-        String newEmail = (String) email.get("newEmail");
-        String newCode = (String) email.get("newCode");
+        String originEmail = (String) email.get("origin_email");
+        String originCode = (String) email.get("origin_code");
+        String newEmail = (String) email.get("new_email");
+        String newCode = (String) email.get("new_code");
         return userService.emailWithUser(originEmail, originCode, newEmail, newCode, userId);
     }
 

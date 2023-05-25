@@ -78,15 +78,13 @@ public class AuthServiceImpl implements AuthService {
         refreshToken1.setAccessToken(accessToken);
         refreshToken1.setUserId(Long.valueOf(userId));
         iRedisService.addRefreshToken(refreshToken,refreshToken1,12*300L);
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime localDateTime3 = now.plusHours(3);
-        LocalDateTime localDateTime12 = now.plusHours(12);
         Token token = new Token();
         token.setAccessToken(accessToken);
         token.setRefreshToken(refreshToken);
-        token.setSign("DangDangDang");
-        token.setAccessTokenExpiredTime(localDateTime3);
-        token.setRefreshTokenExpiredTime(localDateTime12);
+        token.setAccessToken(accessToken);
+        token.setRefreshToken(refreshToken);
+        token.setTokenType("bearer");
+        token.setExpiresIn(3*3600L);
         //删除code
         iRedisService.deleteAuthorizeCode(authorize.getCode());
         return R.success(token);
@@ -149,9 +147,8 @@ public class AuthServiceImpl implements AuthService {
             Token token = new Token();
             token.setAccessToken(accessToken);
             token.setRefreshToken(refreshToken);
-            token.setSign("DangDangDang");
-            token.setAccessTokenExpiredTime(LocalDateTime.now().plusHours(3));
-            token.setRefreshTokenExpiredTime(LocalDateTime.now().plusSeconds(tokenTTL));
+            token.setTokenType("bearer");
+            token.setExpiresIn(3*3600L);
             return R.successOnlyObjectWithStatus(token,1);
         }
         //已经过期了，换新的accessToken
@@ -161,9 +158,10 @@ public class AuthServiceImpl implements AuthService {
         Token token = new Token();
         token.setAccessToken(newAccessToken);
         token.setRefreshToken(refreshToken);
-        token.setSign("DangDangDang");
-        token.setAccessTokenExpiredTime(LocalDateTime.now().plusHours(3));
-        token.setRefreshTokenExpiredTime(LocalDateTime.now().plusSeconds(tokenTTL));
+        token.setAccessToken(accessToken);
+        token.setRefreshToken(refreshToken);
+        token.setTokenType("bearer");
+        token.setExpiresIn(3*3600L);
         return R.successOnlyObjectWithStatus(token,2);
     }
 

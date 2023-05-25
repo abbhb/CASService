@@ -3,6 +3,7 @@ package com.qc.casserver.pojo.entity.invitecode;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.qc.casserver.utils.RandomName;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 public class InviteCode implements Serializable {
     private Long id;
 
+    @JsonProperty("invite_code")
     private String inviteCode;
 
     /**
@@ -20,14 +22,18 @@ public class InviteCode implements Serializable {
      */
     private Integer persistence;
 
+    @JsonProperty("is_deleted")
     @TableLogic
     @TableField(fill = FieldFill.INSERT)//只在插入时填充
     private Integer isDeleted;
 
+    @JsonProperty("usage_count")
     private Integer usageCount;
 
+    @JsonProperty("create_user")
     private Long createUser;
 
+    @JsonProperty("create_time")
     @TableField(fill = FieldFill.INSERT)//只在插入时填充
     private LocalDateTime createTime;
 

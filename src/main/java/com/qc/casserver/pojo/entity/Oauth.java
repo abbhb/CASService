@@ -3,6 +3,7 @@ package com.qc.casserver.pojo.entity;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -39,43 +40,51 @@ public class Oauth implements Serializable {
     /**
      * 客户端id
      */
+    @JsonProperty("client_id")
     private String clientId;
 
     /**
      * 客户端秘钥
      */
+    @JsonProperty("client_secret")
     private String clientSecret;
     /**
      * 回调地址，成功回调会自动加上返回参数code
      */
+    @JsonProperty("redirect_uri")
     private String redirectUri;
 
     /**
      * 客户端name
      */
+    @JsonProperty("client_name")
     private String clientName;
 
     /**
      * 授权类型：grant_type ，1为authorization_code（授权码模式）
      */
+    @JsonProperty("grant_type")
     private Integer grantType;
 
 
     /**
      * 创建时间
      */
+    @JsonProperty("create_time")
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
+    @JsonProperty("update_time")
     @TableField(fill = FieldFill.INSERT_UPDATE)//这些注解都是调用basemapper才有用,自己写的sql不会生效，插入和更新时都填充
     private LocalDateTime updateTime;
 
     /**
      * 是否删除
      */
+    @JsonProperty("is_deleted")
     @TableField(fill = FieldFill.INSERT)
     @TableLogic
     private Integer isDeleted;
@@ -84,6 +93,7 @@ public class Oauth implements Serializable {
      * 删除时间,这个字段不会自动填充，需要自己写sql
      * 解决方法，重写removeById方法，自己写sql
      */
+    @JsonProperty("delete_time")
     private Long deleteTime = 1L;
 
 }

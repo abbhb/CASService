@@ -1,5 +1,6 @@
 package com.qc.casserver.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlCData;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ public class UserResult implements Serializable {
 
     private String sex;
 
+    @JsonProperty("student_id")
     private String studentId;
 
     private Integer status;
@@ -31,13 +33,16 @@ public class UserResult implements Serializable {
     private String avatar;
 
 
+    @JsonProperty("create_time")
     private LocalDateTime createTime;
 
+    @JsonProperty("update_time")
     private LocalDateTime updateTime;
 
     //分组
     private Integer permission;
     //权限名
+    @JsonProperty("permission_name")
     private String permissionName;
 
     //后期可能拓展
@@ -57,6 +62,7 @@ public class UserResult implements Serializable {
     /**
      * 作为cas和oauth的公共参数
      */
+    @JsonProperty("redirect_uri")
     private String redirectUri;
 
     private String openid;

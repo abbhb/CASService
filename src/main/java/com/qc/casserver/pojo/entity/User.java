@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,12 +34,15 @@ public class User implements Serializable {
      */
     private String salt;
 
+    @JsonProperty("create_time")
     @TableField(fill = FieldFill.INSERT)//只在插入时填充
     private LocalDateTime createTime;
 
+    @JsonProperty("update_time")
     @TableField(fill = FieldFill.INSERT_UPDATE)//这些注解都是调用basemapper才有用,自己写的sql不会生效，插入和更新时都填充
     private LocalDateTime updateTime;
 
+    @JsonProperty("is_deleted")
     @TableField(fill = FieldFill.INSERT)
     @TableLogic//如果加了这个字段就说明这个表里默认都是假删除，mp自带的删除方法都是改状态为1，默认0是不删除。自定义的mybatis得自己写
     private Integer isDeleted;
@@ -55,6 +59,7 @@ public class User implements Serializable {
     private String sex;
 
     //学号
+    @JsonProperty("student_id")
     private Long studentId;
 
     private Integer status;
@@ -69,11 +74,13 @@ public class User implements Serializable {
     /**
      * 只有当删除时设置为时间戳，其余时候为1L
      */
+    @JsonProperty("delete_time")
     private Long deleteTime = 1L;
 
     /**
      * 开放id(唯一)
      */
+    @JsonProperty("openid")
     private String openid;
 
 }

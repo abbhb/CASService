@@ -2,6 +2,8 @@ server:
   port: 55555
 spring:
   #邮箱验证码配置
+  jackson:
+    propertyNamingStrategy: CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES
   mail:
     #smtp服务主机  qq邮箱则为smtp.qq.com;163邮箱是smtp.163.com
     host: smtp.qq.com
