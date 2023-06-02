@@ -178,7 +178,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return TGC
      */
     @Override
-    public UserResult login(String username, String password) {
+    public UserResult login(String username, String password,Integer day30) {
         if (username==null||username.equals("")){
             throw new CustomException("用户名不存在");
         }
@@ -211,8 +211,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String tgt = TicketUtil.addNewTGT(one.getUsername(),one.getId(), one.getPermission());//作为value存于redis
         //返回给浏览器，写入cookie
         String tgc = TicketUtil.addNewTGC(String.valueOf(one.getId()),one.getUsername());
-        iRedisService.addTGCWithTGT(tgc, tgt,3*3600L);//token作为value，id是不允许更改的
-
+        if (day30==1){
+            //长期认证
+            iRedisService.addTGCWithTGT(tgc, tgt,30 * 24 * 3600L);//token作为value，id是不允许更改的
+        }else {
+            iRedisService.addTGCWithTGT(tgc, tgt,12 * 3600L);//token作为value，id是不允许更改的
+        }
         UserResult userResult = new UserResult();
         userResult.setId(String.valueOf(one.getId()));
         userResult.setName(one.getName());
@@ -251,7 +255,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new CustomException("账号已禁用!");
         }
         Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
-        iRedisService.addTGCWithTGT(tgc, tgt,3*3600L);//token作为value，id是不允许更改的
+        iRedisService.addTGCWithTGT(tgc, tgt,12*3600L);//token作为value，id是不允许更改的
         //15过期的st,防止网络缓慢
         UserResult userResult = new UserResult();
         userResult.setId(String.valueOf(one.getId()));

@@ -1,5 +1,7 @@
 package com.qc.casserver.common.interceptor;
 
+import com.qc.casserver.common.Code;
+import com.qc.casserver.common.CustomException;
 import com.qc.casserver.common.annotation.NeedLogin;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.service.IRedisService;
@@ -53,23 +55,23 @@ public class LoginInterceptor implements HandlerInterceptor {
         //校验校验用户localstorage中携带的TGC 认证成功才给通过
 
         if (StringUtils.isEmpty(tgc)){
-            return false;
+            throw new CustomException(Code.DEL_TOKEN,"未登录");
         }
 
         String tgt = iRedisService.getTGT(tgc);
         log.info("tgt={},tgc={}",tgt,tgc);
         if (StringUtils.isEmpty(tgt)){
-            return false;
+            throw new CustomException(Code.DEL_TOKEN,"未登录");
         }
         String userId = TicketUtil.getUserIdByTGT(tgt);
         User byId = userService.getById(Long.valueOf(userId));
         if (byId.getStatus()==0){
             //用户被封号;
-            return false;
+            throw new CustomException(Code.DEL_TOKEN,"未登录");
         }
         //到了这里已经是登录的了,现在在这里做个优化,如果此时快过期了，可以无感知更新下票的有效期
-        if (iRedisService.getTGCTTL(tgc)<1500L){
-            iRedisService.setTGCTTL(tgc,3*3600L);
+        if (iRedisService.getTGCTTL(tgc)<2*3600L){
+            iRedisService.setTGCTTL(tgc,12*3600L);
         }
         ThreadLocalUtil.addCurrentUser(byId);
 

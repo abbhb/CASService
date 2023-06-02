@@ -67,5 +67,8 @@ public class UserResult implements Serializable {
 
     private String openid;
 
+    @JsonProperty("day30")
+    private Integer day30;
+
 
 }

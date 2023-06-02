@@ -56,13 +56,14 @@ public class UserController {
          */
         String username = (String) user.get("username");//用户名可以是用户名也可以用邮箱
         String password = (String) user.get("password");
+        Integer day30 = (Integer) user.get("day30");
         String response_type = (String) user.get("response_type");
         //redirect_uri：如果服务端定义了，就以服务端定义的为准
         String redirect_uri = (String) user.get("redirect_uri");
         String service = (String) user.get("service");
         String state = (String) user.get("state");
         String client_id = (String) user.get("client_id");
-        UserResult userResult = userService.login(username, password);
+        UserResult userResult = userService.login(username, password,day30);
         if (StringUtils.isEmpty(userResult.getTgc())) {
             return R.error("好奇怪，出错了!");
         }
@@ -76,10 +77,7 @@ public class UserController {
         authorize.setState(state);
         authorize.setClientId(client_id);
         log.info("authorize = {}", authorize);
-
         return oauthService.loginAggregationReturns(userResult, authorize);
-
-
     }
 
     /**

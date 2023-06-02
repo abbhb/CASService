@@ -11,7 +11,7 @@ import com.qc.casserver.pojo.vo.RegisterUser;
 
 public interface UserService extends IService<User> {
     User getManyUserById(Long id);
-    UserResult login(String username, String password);
+    UserResult login(String username, String password,Integer day30);
 
     UserResult loginbytgc(String tgc);
 
