@@ -1,5 +1,7 @@
 package com.qc.casserver.utils;
 
+
+
 import com.qc.casserver.config.MinIoProperties;
 import io.minio.MinioClient;
 import io.minio.ObjectStat;
@@ -18,12 +20,14 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.util.List;
 
+//启用得还原注释
 @Slf4j
-@Component
+//@Component
 public class MinIoUtil {
 
-    @Autowired
-    MinIoProperties minIoProperties;
+    //启用得还原注释
+//    @Autowired
+//    MinIoProperties minIoProperties;
 
     private static MinioClient minioClient;
 
@@ -34,17 +38,18 @@ public class MinIoUtil {
      * @return: void
      * @date : 2020/8/16 20:56
      */
-    @PostConstruct
-    public void init() {
-        try {
-            minioClient = new MinioClient(minIoProperties.getUrl(), minIoProperties.getAccessKey(),
-                    minIoProperties.getSecretKey());
-            createBucket(minIoProperties.getBucketName());
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.error("初始化minio配置异常: 【{}】", e.fillInStackTrace());
-        }
-    }
+    //启用得还原注释
+//    @PostConstruct
+//    public void init() {
+//        try {
+//            minioClient = new MinioClient(minIoProperties.getUrl(), minIoProperties.getAccessKey(),
+//                    minIoProperties.getSecretKey());
+//            createBucket(minIoProperties.getBucketName());
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            log.error("初始化minio配置异常: 【{}】", e.fillInStackTrace());
+//        }
+//    }
 
     /**
      * 判断 bucket是否存在
@@ -196,3 +201,5 @@ public class MinIoUtil {
     }
 
 }
+
+
