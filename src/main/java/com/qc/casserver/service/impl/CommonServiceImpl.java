@@ -66,13 +66,40 @@ public class CommonServiceImpl implements CommonService {
         try {
             ClassPathResource classPathResource = new ClassPathResource("/img/default_avatar.png");
             InputStream inputStreamImg = classPathResource.getInputStream();
-            image = ImageIO.read(inputStreamImg);
+            BufferedImage image_read = ImageIO.read(inputStreamImg);
+            if (image_read == null){
+                throw new CustomException("无法读取默认头像");
+            }
+            image = image_read;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if(network_check()){
+            // 有网络连接
+            try {
+                URL url = new URL("https://img.xjh.me/random_img.php?return=302");
+                HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5 * 1000);
+                InputStream inputStreamImg = conn.getInputStream();
+                BufferedImage image_read = ImageIO.read(inputStreamImg);
+                if (image_read == null){
+                    throw new CustomException("无法从网络读取头像");
+                }
+                image = image_read;
+                image_read = ImageUtil.resize(image, 360, 360);
+                if (image_read == null){
+                    throw new CustomException("图像无法被压缩");
+                }
+                image = image_read;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         Graphics2D graphics = image.createGraphics();
         if (file == null){
-            ImageUtil.drawStringOnImage(graphics, "图片文件为空");
+            // 允许接口空调用
+            /*ImageUtil.drawStringOnImage(graphics, "图片文件为空");*/
             String s = ImageUtil.GetBase64FromImage(image);
             return R.successOnlyObject(s);
         }
