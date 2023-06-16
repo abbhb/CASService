@@ -1,0 +1,76 @@
+server:
+  port: 55555
+spring:
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
+  #redis
+  redis:
+    host: 127.0.0.1
+    database: 0
+    port: 6379
+    jedis:
+      pool:
+        max-active: 40
+        max-wait: -1
+        max-idle: 10
+        min-idle: 2
+    timeout: 6000
+    password: hipvifmpe962
+  #邮箱验证码配置
+  jackson:
+    propertyNamingStrategy: CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES
+  mail:
+    #smtp服务主机  127.0.0.1 本机服务
+    host: 127.0.0.1
+    port: 25
+    #服务协议
+    protocol: smtp
+    #发送邮件的账户
+    username: www@AI-EN-Datacom.localdomain
+    #授权码
+    #    password: uftgsldqgymadbac
+    test-connection: false
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+            required: false
+  application:
+    name: cas-server
+  datasource:
+    druid:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://10.15.247.254:3306/casserver?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: casserver
+      password: d5nWDaEYDa7WHSD5
+    type: com.alibaba.druid.pool.DruidDataSource
+mybatis-plus:
+  configuration:
+    #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
+    map-underscore-to-camel-case: true
+    #上边这个开启sql日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    cache-enabled: false
+  global-config:
+    #雪花算法
+    db-config:
+      id-type: ASSIGN_ID
+# ====================== ↓↓↓↓↓↓ MinIO文件服务器 ↓↓↓↓↓↓ ======================
+# 关闭minio，恢复注释即可恢复
+#minio:
+#  url: http://10.15.245.1:9090
+#  accessKey: N2T6ZfARSupeUYbn
+#  secretKey: nqcG5pG9Qc104lHrWgVZCYrc2JZSyS0v
+#  bucketName: aistudio
+
+## ====================== ↓↓↓↓↓↓ scim文件服务器 ↓↓↓↓↓↓ ======================
+#scim2:
+#  baseUrl: http://10.15.245.1:55555/
+
+login:
+  need-captcha: true
