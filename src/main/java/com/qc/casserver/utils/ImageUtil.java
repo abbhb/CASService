@@ -1,17 +1,34 @@
 package com.qc.casserver.utils;
 
+import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 
-public class ImageToBase64 {
+public class ImageUtil {
+
+    //BufferedImage 转base64
+    public static String GetBase64FromImage(BufferedImage img){
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            // 设置图片的格式
+            ImageIO.write(img, "png", stream);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        Base64.Encoder encoder = Base64.getEncoder();
+        String base64 = encoder.encodeToString(stream.toByteArray());
+        return  "data:image/png;base64,"+base64;
+    }
 
     /**
      * 将MultipartFile 图片文件编码为base64
-     * @param file
-     * @return
-     * @throws Exception
      */
     public static String generateBase64(MultipartFile file){
         if (file == null || file.isEmpty()) {
@@ -41,4 +58,21 @@ public class ImageToBase64 {
         return base64EncoderImg;
     }
 
+    public static void drawStringOnImage(Graphics2D graphics, String str){
+        graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        //设置字体
+        Font font = new Font("黑体", Font.PLAIN, 36);
+        graphics.setFont(font);
+        //设置颜色
+        graphics.setColor(Color.BLACK);
+        //向画板上写字
+        graphics.drawString(str, 70, 340);
+        //释放资源
+        graphics.dispose();
+    }
+
+    public static BufferedImage resize(BufferedImage image, int i, int i1) throws IOException {
+        // https://blog.csdn.net/lcj_star/article/details/76637931
+        return Thumbnails.of(image).size(i, i1).outputFormat("png").outputQuality(0.7).asBufferedImage();
+    }
 }

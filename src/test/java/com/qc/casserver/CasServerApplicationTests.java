@@ -10,4 +10,5 @@ class CasServerApplicationTests {
     void contextLoads() {
     }
 
+
 }
