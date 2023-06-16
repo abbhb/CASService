@@ -9,16 +9,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CaptchaUtilsTest {
 
-    @org.junit.jupiter.api.Test
-    void getRandomChinese() throws IOException {
-        String s = ImageUtil.GetBase64FromImage(CaptchaUtils.getBufferedImage(0));
-        /* Ğ´ÈëTxtÎÄ¼ş */
-        File writename = new File("E:\\web\\111\\img\\1.txt"); // Ïà¶ÔÂ·¾¶£¬Èç¹ûÃ»ÓĞÔòÒª½¨Á¢Ò»¸öĞÂµÄoutput¡£txtÎÄ¼ş
-        writename.createNewFile(); // ´´½¨ĞÂÎÄ¼ş
-        BufferedWriter out = new BufferedWriter(new FileWriter(writename));
-        out.write(s); // \r\n¼´Îª»»ĞĞ
-        out.flush(); // °Ñ»º´æÇøÄÚÈİÑ¹ÈëÎÄ¼ş
-        out.close(); // ×îºó¼ÇµÃ¹Ø±ÕÎÄ¼ş
-        System.out.println(s);
-    }
+//    @org.junit.jupiter.api.Test
+//    void getRandomChinese() throws IOException {
+//        String s = ImageUtil.GetBase64FromImage(CaptchaUtils.getBufferedImage(0));
+//        /* å†™å…¥Txtæ–‡ä»¶ */
+//        File writename = new File("E:\\web\\111\\img\\1.txt"); // ç›¸å¯¹è·¯å¾„ï¼Œå¦‚æœæ²¡æœ‰åˆ™è¦å»ºç«‹ä¸€ä¸ªæ–°çš„outputã€‚txtæ–‡ä»¶
+//        writename.createNewFile(); // åˆ›å»ºæ–°æ–‡ä»¶
+//        BufferedWriter out = new BufferedWriter(new FileWriter(writename));
+//        out.write(s); // \r\nå³ä¸ºæ¢è¡Œ
+//        out.flush(); // æŠŠç¼“å­˜åŒºå†…å®¹å‹å…¥æ–‡ä»¶
+//        out.close(); // æœ€åè®°å¾—å…³é—­æ–‡ä»¶
+//        System.out.println(s);
+//    }
 }
