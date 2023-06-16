@@ -5,30 +5,31 @@ spring:
   jackson:
     propertyNamingStrategy: CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES
   mail:
-    #smtp服务主机  qq邮箱则为smtp.qq.com;163邮箱是smtp.163.com
-    host: smtp.qq.com
+    #smtp服务主机  127.0.0.1 本机服务
+    host: 127.0.0.1
+    port: 25
     #服务协议
     protocol: smtp
     #发送邮件的账户
-    username: 3482238110@qq.com
+    username: www@AI-EN-Datacom.localdomain
     #授权码
-    password: uftgsldqgymadbac
+    #    password: uftgsldqgymadbac
     test-connection: false
     properties:
       mail:
         smtp:
-          auth: true
+          auth: false
           starttls:
-            enable: true
-            required: true
+            enable: false
+            required: false
   application:
     name: cas-server
   datasource:
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://192.168.12.12:13306/casserver?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
-      username: root
-      password: aizhineng1404
+      url: jdbc:mysql://10.15.247.254:3306/casserver?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+      username: casserver
+      password: d5nWDaEYDa7WHSD5
     type: com.alibaba.druid.pool.DruidDataSource
 mybatis-plus:
   configuration:
@@ -36,7 +37,7 @@ mybatis-plus:
     map-underscore-to-camel-case: true
     #上边这个开启sql日志
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-#    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    #    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
     cache-enabled: false
   global-config:
     #雪花算法

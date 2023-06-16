@@ -173,7 +173,7 @@ public class CommonServiceImpl implements CommonService {
 
         SimpleMailMessage message = new SimpleMailMessage();
 
-        message.setFrom("3482238110@qq.com");
+        message.setFrom("www@AI-EN-Datacom.localdomain");
 
         message.setTo(emailCode.getEmail());
 
