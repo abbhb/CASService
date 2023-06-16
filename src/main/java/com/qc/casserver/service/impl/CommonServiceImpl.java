@@ -75,7 +75,7 @@ public class CommonServiceImpl implements CommonService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (NetworkUtil.network_check()) {
+        /*if (NetworkUtil.network_check()) {
             // 有网络连接
             try {
                 URL url = new URL("https://img.xjh.me/random_img.php?return=302");
@@ -96,7 +96,7 @@ public class CommonServiceImpl implements CommonService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+        }*/
         Graphics2D graphics = image.createGraphics();
         if (file == null) {
             // 允许接口空调用
