@@ -10,6 +10,7 @@ import com.qc.casserver.service.CaptchaService;
 import com.qc.casserver.service.CommonService;
 import com.qc.casserver.service.IRedisService;
 import com.qc.casserver.utils.ImageUtil;
+import com.qc.casserver.utils.NetworkUtil;
 import com.qc.casserver.utils.VerCodeGenerateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -67,28 +68,28 @@ public class CommonServiceImpl implements CommonService {
             ClassPathResource classPathResource = new ClassPathResource("/img/default_avatar.png");
             InputStream inputStreamImg = classPathResource.getInputStream();
             BufferedImage image_read = ImageIO.read(inputStreamImg);
-            if (image_read == null){
+            if (image_read == null) {
                 throw new CustomException("无法读取默认头像");
             }
             image = image_read;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(network_check()){
+        if (NetworkUtil.network_check()) {
             // 有网络连接
             try {
                 URL url = new URL("https://img.xjh.me/random_img.php?return=302");
-                HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(5 * 1000);
                 InputStream inputStreamImg = conn.getInputStream();
                 BufferedImage image_read = ImageIO.read(inputStreamImg);
-                if (image_read == null){
+                if (image_read == null) {
                     throw new CustomException("无法从网络读取头像");
                 }
                 image = image_read;
                 image_read = ImageUtil.resize(image, 360, 360);
-                if (image_read == null){
+                if (image_read == null) {
                     throw new CustomException("图像无法被压缩");
                 }
                 image = image_read;
@@ -97,19 +98,19 @@ public class CommonServiceImpl implements CommonService {
             }
         }
         Graphics2D graphics = image.createGraphics();
-        if (file == null){
+        if (file == null) {
             // 允许接口空调用
             /*ImageUtil.drawStringOnImage(graphics, "图片文件为空");*/
             String s = ImageUtil.GetBase64FromImage(image);
             return R.successOnlyObject(s);
         }
-        if (file.isEmpty()){
+        if (file.isEmpty()) {
             ImageUtil.drawStringOnImage(graphics, "图片文件为空");
             String s = ImageUtil.GetBase64FromImage(image);
             return R.successOnlyObject(s);
         }
         // 限制图片大小为3M
-        if (file.getSize() > 1024 * 1024 * 30){
+        if (file.getSize() > 1024 * 1024 * 30) {
             ImageUtil.drawStringOnImage(graphics, "图片文件过大");
             String s = ImageUtil.GetBase64FromImage(image);
             return R.successOnlyObject(s);
@@ -117,7 +118,7 @@ public class CommonServiceImpl implements CommonService {
         try {
             InputStream inputStreamImg = file.getInputStream();
             BufferedImage image_read = ImageIO.read(inputStreamImg);
-            if (image_read == null){
+            if (image_read == null) {
                 throw new CustomException("上传的文件不是图片");
             }
             image = image_read;
@@ -131,7 +132,7 @@ public class CommonServiceImpl implements CommonService {
         // 压缩图片到360*360
         try {
             BufferedImage image_read = ImageUtil.resize(image, 360, 360);
-            if (image_read == null){
+            if (image_read == null) {
                 throw new CustomException("图像无法被压缩");
             }
             image = image_read;
@@ -208,24 +209,5 @@ public class CommonServiceImpl implements CommonService {
         return R.success(0);
     }
 
-    private static boolean network_check() {
-        // 204 检测联网大法
-        String Check_url = "https://connect.rom.miui.com/generate_204";
-        try {
-            URL url = new URL(Check_url);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            // 设置连接方式：get
-            connection.setRequestMethod("GET");
-            // 设置连接主机服务器的超时时间：15000毫秒
-            connection.setConnectTimeout(3000);
-            // 设置读取远程返回的数据时间：60000毫秒
-            connection.setReadTimeout(3000);
-            // 发送请求
-            connection.connect();
-            return connection.getResponseCode() == 204;
-        }catch(Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
+
 }

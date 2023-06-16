@@ -1,5 +1,6 @@
 package com.qc.casserver.utils;
 
+import com.qc.casserver.common.CustomException;
 import com.qc.casserver.pojo.entity.Captcha;
 import org.apache.commons.lang.math.RandomUtils;
 
@@ -9,6 +10,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 import java.util.Objects;
@@ -69,7 +72,7 @@ public class CaptchaUtils {
      **/
     public static BufferedImage getBufferedImage(Integer place) {
         try {
-            //随机图片
+            /*//随机图片
             int nonce = getNonceByRange(0, 1000);
             //获取网络资源图片
             if (0 == place) {
@@ -82,7 +85,43 @@ public class CaptchaUtils {
                 String imgPath = String.format(IMG_PATH, nonce);
                 File file = new File(imgPath);
                 return ImageIO.read(file);
+            }*/
+            BufferedImage image = new BufferedImage(1080, 720, BufferedImage.TYPE_INT_BGR);
+            Graphics2D graphics = image.createGraphics();
+            graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            //设置字体
+            Font font = new Font("黑体", Font.PLAIN, 60);
+            graphics.setFont(font);
+            //设置颜色
+            graphics.setColor(Color.WHITE);
+            //向画板上写字
+            graphics.drawString(RandomChinese.getRandomChineseLen(17), 35, 100);
+            graphics.drawString(RandomChinese.getRandomChineseLen(17), 35, 200);
+            graphics.drawString(RandomChinese.getRandomChineseLen(17), 35, 300);
+            graphics.drawString(RandomChinese.getRandomChineseLen(17), 35, 400);
+            graphics.drawString(RandomChinese.getRandomChineseLen(17), 35, 500);
+            graphics.drawString(RandomChinese.getRandomChineseLen(17), 35, 600);
+            graphics.drawString(RandomChinese.getRandomChineseLen(17), 35, 700);
+            //释放资源
+            graphics.dispose();
+            // 判断网络
+            try {
+                if (NetworkUtil.network_check()) {
+                    URL url = new URL("https://img.xjh.me/random_img.php?return=302");
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+                    conn.setConnectTimeout(5 * 1000);
+                    InputStream inputStreamImg = conn.getInputStream();
+                    BufferedImage image_read = ImageIO.read(inputStreamImg);
+                    if (image_read == null) {
+                        throw new CustomException("无法从网络读取头像");
+                    }
+                    image = image_read;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            return image;
         } catch (Exception e) {
             System.out.println("获取拼图资源失败");
             //异常处理
@@ -177,6 +216,7 @@ public class CaptchaUtils {
         }
         return data;
     }
+
     /**
      * 根据朝向获取圆心坐标
      */
@@ -199,6 +239,7 @@ public class CaptchaUtils {
         }
         return null;
     }
+
     /**
      * 在画布上添加阻塞块水印
      */
@@ -208,6 +249,7 @@ public class CaptchaUtils {
         graphics2D.drawImage(blockImage, x, y, null);
         graphics2D.dispose();
     }
+
     /**
      * BufferedImage转BASE64
      */

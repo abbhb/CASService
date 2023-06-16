@@ -8,7 +8,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Base64;
+import java.util.Random;
 
 public class ImageUtil {
 
@@ -75,4 +77,6 @@ public class ImageUtil {
         // https://blog.csdn.net/lcj_star/article/details/76637931
         return Thumbnails.of(image).size(i, i1).outputFormat("png").outputQuality(0.7).asBufferedImage();
     }
+
+
 }
