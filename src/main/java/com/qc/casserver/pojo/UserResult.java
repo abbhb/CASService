@@ -1,8 +1,6 @@
 package com.qc.casserver.pojo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlCData;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -69,6 +67,8 @@ public class UserResult implements Serializable {
 
     @JsonProperty("day30")
     private Integer day30;
+
+    private boolean noPassMFA;
 
 
 }

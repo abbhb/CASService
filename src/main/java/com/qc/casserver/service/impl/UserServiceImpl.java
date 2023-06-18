@@ -3,26 +3,26 @@ package com.qc.casserver.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
 import com.qc.casserver.common.Code;
 import com.qc.casserver.common.CustomException;
 import com.qc.casserver.common.MyString;
-
 import com.qc.casserver.common.R;
 import com.qc.casserver.mapper.UserMapper;
 import com.qc.casserver.pojo.UserResult;
-import com.qc.casserver.pojo.entity.Authorize;
+import com.qc.casserver.pojo.entity.GoogleAuthenticator;
 import com.qc.casserver.pojo.entity.PageData;
 import com.qc.casserver.pojo.entity.Permission;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.pojo.vo.RegisterUser;
 import com.qc.casserver.service.*;
-import com.qc.casserver.utils.*;
-
+import com.qc.casserver.utils.PWDMD5;
+import com.qc.casserver.utils.RandomName;
+import com.qc.casserver.utils.ThreadLocalUtil;
+import com.qc.casserver.utils.TicketUtil;
+import com.qc.casserver.utils.googleauthenticator.GoogleAuthenticatorUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -47,13 +47,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private InviteCodeService inviteCodeService;
     private final CommonService commonService;
 
-    @Autowired
-    private Map<String,Object> usersMap;
+    private final GoogleAuthenticatorService googleAuthenticatorService;
 
     @Autowired
-    public UserServiceImpl(IRedisService iRedisService, CommonService commonService) {
+    private Map<String, Object> usersMap;
+
+    @Autowired
+    public UserServiceImpl(IRedisService iRedisService, CommonService commonService, GoogleAuthenticatorService googleAuthenticatorService) {
         this.iRedisService = iRedisService;
         this.commonService = commonService;
+        this.googleAuthenticatorService = googleAuthenticatorService;
     }
 
 
@@ -178,17 +181,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return TGC
      */
     @Override
-    public UserResult login(String username, String password,Integer day30) {
-        if (username==null||username.equals("")){
+    public UserResult login(String username, String password, Integer day30, String code) {
+        if (username == null || username.equals("")) {
             throw new CustomException("用户名不存在");
         }
-        if (password==null||password.equals("")){
+        if (password == null || password.equals("")) {
             throw new CustomException("密码不存在");
         }
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        if (username.contains("@")){
+        if (username.contains("@")) {
             //邮箱
-            queryWrapper.eq(User::getEmail,username);
+            queryWrapper.eq(User::getEmail, username);
 
         }else {
             queryWrapper.eq(User::getUsername,username);
@@ -199,23 +202,39 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new CustomException("用户名或密码错误");
         }
         String salt = one.getSalt();
-        if (!PWDMD5.getMD5Encryption(password,salt).equals(one.getPassword())){//前端传入的明文密码加上后端的盐，处理后跟库中密码比对，一样登陆成功
+        if (!PWDMD5.getMD5Encryption(password, salt).equals(one.getPassword())) {//前端传入的明文密码加上后端的盐，处理后跟库中密码比对，一样登陆成功
             throw new CustomException("用户名或密码错误");
         }
 
-        if(one.getStatus() == 0){
+        if (one.getStatus() == 0) {
             throw new CustomException("账号已禁用!");
+        }
+        LambdaQueryWrapper<GoogleAuthenticator> googleAuthenticatorLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        googleAuthenticatorLambdaQueryWrapper.eq(GoogleAuthenticator::getUserId, one.getId());
+        GoogleAuthenticator googleAuthenticator = googleAuthenticatorService.getOne(googleAuthenticatorLambdaQueryWrapper);
+        if (googleAuthenticator != null) {
+            if (googleAuthenticator.getState().equals(1) && googleAuthenticator.getVerify().equals(1)) {
+                UserResult userResult = new UserResult();
+                userResult.setNoPassMFA(true);
+                if (StringUtils.isEmpty(code)) {
+                    return userResult;
+                }
+                boolean b = GoogleAuthenticatorUtil.checkCode(googleAuthenticator.getSecret(), Long.valueOf(code), System.currentTimeMillis());
+                if (!b) {
+                    throw new CustomException("动态密码错误!");
+                }
+            }
         }
         Permission permission = (Permission) iRedisService.getHash(MyString.permission_key, String.valueOf(one.getPermission()));
         //生成TGC和TGT ----  通过此方式登录说明该用户在此设备上的此浏览器没有登录过
-        String tgt = TicketUtil.addNewTGT(one.getUsername(),one.getId(), one.getPermission());//作为value存于redis
+        String tgt = TicketUtil.addNewTGT(one.getUsername(), one.getId(), one.getPermission());//作为value存于redis
         //返回给浏览器，写入cookie
-        String tgc = TicketUtil.addNewTGC(String.valueOf(one.getId()),one.getUsername());
-        if (day30==1){
+        String tgc = TicketUtil.addNewTGC(String.valueOf(one.getId()), one.getUsername());
+        if (day30 == 1) {
             //长期认证
-            iRedisService.addTGCWithTGT(tgc, tgt,30 * 24 * 3600L);//token作为value，id是不允许更改的
-        }else {
-            iRedisService.addTGCWithTGT(tgc, tgt,12 * 3600L);//token作为value，id是不允许更改的
+            iRedisService.addTGCWithTGT(tgc, tgt, 30 * 24 * 3600L);//token作为value，id是不允许更改的
+        } else {
+            iRedisService.addTGCWithTGT(tgc, tgt, 12 * 3600L);//token作为value，id是不允许更改的
         }
         UserResult userResult = new UserResult();
         userResult.setId(String.valueOf(one.getId()));

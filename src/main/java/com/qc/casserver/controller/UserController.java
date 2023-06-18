@@ -6,19 +6,16 @@ import com.qc.casserver.common.annotation.PermissionCheck;
 import com.qc.casserver.pojo.UserResult;
 import com.qc.casserver.pojo.entity.Authorize;
 import com.qc.casserver.pojo.entity.PageData;
-import com.qc.casserver.pojo.entity.Ticket;
 import com.qc.casserver.pojo.entity.User;
 import com.qc.casserver.pojo.vo.RegisterUser;
 import com.qc.casserver.service.IRedisService;
 import com.qc.casserver.service.OauthService;
 import com.qc.casserver.service.UserService;
-
 import com.qc.casserver.utils.TGTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
@@ -57,13 +54,17 @@ public class UserController {
         String username = (String) user.get("username");//用户名可以是用户名也可以用邮箱
         String password = (String) user.get("password");
         Integer day30 = (Integer) user.get("day30");
+        String code = (String) user.get("code");
         String response_type = (String) user.get("response_type");
         //redirect_uri：如果服务端定义了，就以服务端定义的为准
         String redirect_uri = (String) user.get("redirect_uri");
         String service = (String) user.get("service");
         String state = (String) user.get("state");
         String client_id = (String) user.get("client_id");
-        UserResult userResult = userService.login(username, password,day30);
+        UserResult userResult = userService.login(username, password, day30, code);
+        if (userResult.isNoPassMFA()) {
+            return R.successOnlyObjectWithStatus(null, 203);
+        }
         if (StringUtils.isEmpty(userResult.getTgc())) {
             return R.error("好奇怪，出错了!");
         }

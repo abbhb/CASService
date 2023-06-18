@@ -84,7 +84,7 @@ public class GoogleAuthenticatorServiceImpl extends ServiceImpl<GoogleAuthentica
         googleAuthenticatorR.setUserId(String.valueOf(one.getUserId()));
 
         // 生成二维码内容
-        String qrCodeText = GoogleAuthenticatorUtil.getQrCodeText(one.getSecret(), "AIENSSO", "");
+        String qrCodeText = GoogleAuthenticatorUtil.getQrCodeText(one.getSecret(), currentUser.getUsername(), "AIENSSO");
         // 生成二维码输出
         BufferedImage image = new SimpleQrcodeGenerator().generate(qrCodeText).getImage();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
