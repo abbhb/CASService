@@ -71,4 +71,5 @@ mybatis-plus:
 #  baseUrl: http://10.15.245.1:55555/
 
 login:
-  need-captcha: true
+  need-captcha: false
+  need-invita-code: false

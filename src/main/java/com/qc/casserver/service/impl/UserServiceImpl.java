@@ -10,6 +10,7 @@ import com.qc.casserver.common.Code;
 import com.qc.casserver.common.CustomException;
 import com.qc.casserver.common.MyString;
 import com.qc.casserver.common.R;
+import com.qc.casserver.config.LoginConfig;
 import com.qc.casserver.mapper.UserMapper;
 import com.qc.casserver.pojo.UserResult;
 import com.qc.casserver.pojo.entity.GoogleAuthenticator;
@@ -52,11 +53,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private Map<String, Object> usersMap;
 
+    private final LoginConfig loginConfig;
+
     @Autowired
-    public UserServiceImpl(IRedisService iRedisService, CommonService commonService, GoogleAuthenticatorService googleAuthenticatorService) {
+    public UserServiceImpl(IRedisService iRedisService, CommonService commonService, GoogleAuthenticatorService googleAuthenticatorService, LoginConfig loginConfig) {
         this.iRedisService = iRedisService;
         this.commonService = commonService;
         this.googleAuthenticatorService = googleAuthenticatorService;
+        this.loginConfig = loginConfig;
     }
 
 
@@ -482,27 +486,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new CustomException("password");
         }
 
-        if (StringUtils.isEmpty(user.getInviteCode())){
-            throw new CustomException("邀请码缺少");
-        }
-        if (user.getUsername().contains("@")){
+
+        if (user.getUsername().contains("@")) {
             throw new CustomException("不可包含'@'");
         }
-        if (!user.getPassword().matches("^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$")){
+        if (!user.getPassword().matches("^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$")) {
             return R.error("密码必须字母加数字,8-16位");
         }
 
         //校验邀请码
-        boolean isTrue = inviteCodeService.useInviteCode(user.getInviteCode());
-        if (!isTrue){
-            throw new CustomException("邀请码错误");
+        if (loginConfig.isNeedInvitaCode()) {
+            if (StringUtils.isEmpty(user.getInviteCode())) {
+                throw new CustomException("邀请码缺少");
+            }
+            boolean isTrue = inviteCodeService.useInviteCode(user.getInviteCode());
+            if (!isTrue) {
+                throw new CustomException("邀请码错误");
+            }
         }
-
         checkSensitiveWords(user.getName());
-        if (StringUtils.isEmpty(user.getEmail())){
+        if (StringUtils.isEmpty(user.getEmail())) {
             throw new CustomException("邮箱缺少");
         }
-        if (StringUtils.isEmpty(user.getMailCode())){
+        if (StringUtils.isEmpty(user.getMailCode())) {
             throw new CustomException("邮箱验证码缺少");
         }
 

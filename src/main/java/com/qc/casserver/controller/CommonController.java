@@ -77,16 +77,16 @@ public class CommonController {
     /**
      * 1为需要，
      * 0为不需要
+     *
      * @return
      */
     @CrossOrigin("*")
-    @GetMapping("/getIfNeedCaptcha")
-    public R<Integer> getIfNeedCaptcha(){
-        if (loginConfig.isNeedCaptcha()){
-            return R.success(1);
-        }
-        return R.success(0);
+    @GetMapping("/getLoginConfig")
+    public R<LoginConfig> getLoginConfig() {
+        return R.success(loginConfig);
     }
+
+
     @CrossOrigin("*")
     @PostMapping("/checkImageCode")
     public R<Captcha> checkImageCode(@RequestBody Captcha captcha) {

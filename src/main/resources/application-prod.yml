@@ -74,3 +74,4 @@ mybatis-plus:
 
 login:
   need-captcha: false
+  need-invita-code: false
