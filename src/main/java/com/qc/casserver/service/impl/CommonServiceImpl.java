@@ -10,7 +10,6 @@ import com.qc.casserver.service.CaptchaService;
 import com.qc.casserver.service.CommonService;
 import com.qc.casserver.service.IRedisService;
 import com.qc.casserver.utils.ImageUtil;
-import com.qc.casserver.utils.NetworkUtil;
 import com.qc.casserver.utils.VerCodeGenerateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -25,8 +24,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 
 @Service
@@ -173,7 +170,8 @@ public class CommonServiceImpl implements CommonService {
 
         SimpleMailMessage message = new SimpleMailMessage();
 
-        message.setFrom("www@AI-EN-Datacom.localdomain");
+//        message.setFrom("www@AI-EN-Datacom.localdomain");
+        message.setFrom("3482238110@qq.com");
 
         message.setTo(emailCode.getEmail());
 

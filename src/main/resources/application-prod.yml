@@ -23,22 +23,21 @@ spring:
     propertyNamingStrategy: CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES
   mail:
     #smtp服务主机  127.0.0.1 本机服务
-    host: 127.0.0.1
-    port: 25
+    host: smtp.qq.com
     #服务协议
     protocol: smtp
     #发送邮件的账户
-    username: www@AI-EN-Datacom.localdomain
+    username: 3482238110@qq.com
     #授权码
-    #    password: uftgsldqgymadbac
+    password: uftgsldqgymadbac
     test-connection: false
     properties:
       mail:
         smtp:
-          auth: false
+          auth: true
           starttls:
-            enable: false
-            required: false
+            enable: true
+            required: true
   application:
     name: cas-server
   datasource:
